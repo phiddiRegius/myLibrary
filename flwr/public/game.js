@@ -141,6 +141,11 @@ class assetManager { // not implementing this yet... will be a mediator for beha
   constructor() {
   }
 }
+/**
+ * A gameAsset is everything that ...
+ * 
+ */
+
 class gameAsset {
   static instances = [];
   constructor(objectType, elmId, posX, posY, width, height) {
