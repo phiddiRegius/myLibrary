@@ -432,7 +432,7 @@ socket.on('planted', function (itemData) {
 
 // 3000 for local
 // port for glitch
-server.listen(port, () => {
+server.listen(process.env.PORT, () => {
   console.log('listening on *:3000');
 });
 
