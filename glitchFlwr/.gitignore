@@ -1,0 +1,7 @@
+# folders
+other/
+.vscode/
+node_modules
+
+# files
+.DS_Store
