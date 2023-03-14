@@ -11,6 +11,25 @@
     <title>p5js Server & GUI</title>
 </head>
 <body>
+    <div id="mainContent">
+
+        <p id="main-text">Checking you are seeing this on mobile.</p>
+        
+        <div id="getGyroAccess">
+            <button id="gyroPermission">Allow</button>
+            <p id="gyro-text">Please allow permission for gyroscope</p>
+        </div>
+
+        <div id="debug">
+            <p>alpha: <span id="alpha"></span></p>
+            <p>beta: <span id="beta"></span></p>
+            <p>gamma: <span id="gamma"></span></p>
+            <p>acc_x: <span id="acc_x"></span></p>
+            <p>acc_y: <span id="acc_y"></span></p>
+        </div>
+        <button type="button" id="debugButton" name="button">🐛</button>
+
+    </div>
     <script src="sketch.js"></script>
 </body>
 </html>
