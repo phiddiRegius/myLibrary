@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+        <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+    <title>p5js Server & GUI</title>
+</head>
+<body>
+    <div id="mainContent">
+        <div class="'section section-1">
+            <p id="main-text">Checking you are seeing this on mobile.</p>
+        
+            <div id="getGyroAccess">
+                <button id="gyroPermission">Allow</button>
+                <p id="gyro-text">Please allow permission for gyroscope</p>
+            </div>
+
+            <div id="debug">
+                <p>alpha: <span id="alpha"></span></p>
+                <p>beta: <span id="beta"></span></p>
+                <p>gamma: <span id="gamma"></span></p>
+                <p>acc_x: <span id="acc_x"></span></p>
+                <p>acc_y: <span id="acc_y"></span></p>
+            </div>
+            <button type="button" id="debugButton" name="button">🐛</button>
+        </div>
+        <div class="'section section-2">
+            <div id='sketchContainer'></div>
+        </div>
+        
+        <div class="'section section-3">
+            <div id='qrCodesDisplay'>
+                <div id="player1"></div>
+                <div id="player2" class="inactive"></div>
+                <div id="player3" class="inactive"></div>
+                <div id="player4" class="inactive"></div>
+             </div>
+        </div>
+        <!-- <div id="qrcode"></div> -->
+
+    </div>
+    <script src="sketch.js"></script>
+</body>
+</html>

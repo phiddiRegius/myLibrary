@@ -1,0 +1,26 @@
+:root {
+    --display: none;
+}
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    /* overflow-y: scroll;
+    overflow: hidden;   */
+}
+#mainContent {
+    /* display: flex;
+    justify-content: center;
+    align-items: center; */
+    width: 100vw;
+    height: 100vh;
+}
+#qrCodesDisplay {
+    display: block;
+    transform: scale(0.75);
+}
+#qrCodesDisplay > div {
+    float: left;
+    margin: 20px;
+}
