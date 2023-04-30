@@ -100,7 +100,9 @@ p {
 }
 .followerSprite {
     position: absolute;
-    background-color: rgb(237, 161, 84);
+    /* background-color: rgb(237, 161, 84); */
+    background-position: center;
+    background-repeat: no-repeat;
 }
 .mainPlayer {
     position: fixed;
@@ -117,7 +119,7 @@ canvas {
     background-color: rgb(183, 118, 227);
 }
 .colliderFoot {
-    background-color: rgba(227, 227, 227, 0.66);
+    /* background-color: rgba(227, 227, 227, 0.66); */
     position: absolute;
     left: 0;
     bottom: 0;

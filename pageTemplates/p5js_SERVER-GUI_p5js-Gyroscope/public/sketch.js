@@ -22,9 +22,6 @@ let planeWidth = 100;
 let planeHeight = 100;
 let planeThickness = 10;
 
-
-
-
 from: https://stackoverflow.com/a/14301832
 window.mobileAndTabletcheck = function() {
   var check = false;

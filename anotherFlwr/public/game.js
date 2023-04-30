@@ -108,7 +108,7 @@ if(gameIsStarted === true) {
     case 37: // left arrow
       if (player.currentDirection === 'left') {
         //player.stepLeft();
-        player.step();
+        player.step(); 
       } else {
         player.setFacingDirection('left');
       }
@@ -143,6 +143,15 @@ if(gameIsStarted === true) {
 
 let socket = io();
 mainContainer.append(playerGUI, startMenu, gameMap);
+
+class eventManager { // not implementing this yet... will be a mediator for behaviors and interactions
+  constructor() {
+  }
+  static emit(eventName, eventData) {
+    socket.emit(eventName, eventData);
+    // console.log('emitting things?')
+  }
+}
 
 startButton.addEventListener('click', () => {
   if (activePlayers.length === 5) {
@@ -311,7 +320,7 @@ class gameAsset {
     elm.innerHTML = `<p class="debugTag">${this.elmId}</p>`;
   }
 
-  this.updatePosition();
+  // this.updatePosition();
   gameMap.append(elm);
   elm.append(this.colliderFoot);
 
@@ -384,58 +393,6 @@ class worldItem extends worldObject {
   //   }
   // }
 }
-class pathFinderSprite { // using this for the flowerTrain
-  constructor(player) {
-    this.player = player;
-    this.currentDirection = player.currentDirection;
-    this.colliderFoot = player.colliderFoot;
-    // train stuff
-    this.maxPassengers = 5;
-    this.flwrTrain = [];
-    this.flwrDisplayWidth = 10;
-    this.flwrDisplayHeight = 10;
-    this.initialPos = 10;
-    this.collidable = false;
-    // slug stuff?
-  }
-  moveTrain() {
-    let buffer = 15; // space
-    let x = this.player.posX + this.player.width / 2 - this.flwrDisplayWidth / 2;
-    let y = this.player.posY + this.player.height - this.initialPos * 3;
-    let currentX = x;
-    let currentY = y;
-    for (let i = 0; i < this.maxPassengers; i++) {
-      switch (this.currentDirection) {
-        case 'down':
-          currentY = y - (i+1)*buffer;
-          break;
-        case 'right':
-          currentX = x - (i+1)*buffer;
-          break;
-        case 'up':
-          // currentY = y - (i+1)*distance;
-          currentY = y + (i+1)*buffer;
-          break;
-        case 'left':
-          currentX = x + (i+1)*buffer;
-          break;
-      }
-      let trainElm = this.flwrTrain[i];
-      if (!trainElm) {
-        // create a new train element if it doesn't exist yet
-        let newTrainElm = document.createElement('div');
-        newTrainElm.style.width = this.flwrDisplayWidth + 'px';
-        newTrainElm.style.height = this.flwrDisplayHeight + 'px';
-        newTrainElm.classList.add('flowerTrain');
-        this.flwrTrain.push(newTrainElm);
-        gameMap.append(newTrainElm);
-        trainElm = newTrainElm;
-      }
-      trainElm.style.top = currentY + 'px';
-      trainElm.style.left = currentX + 'px';
-    }
-  }
-}
 class gameSprite extends gameAsset {
   constructor(objectType, elmId, posX, posY, width, height, currentDirection) {
     super(objectType, elmId, posX, posY, width, height, currentDirection);
@@ -460,8 +417,11 @@ class gameSprite extends gameAsset {
     // console.log('setFacingDirection: ', this.currentDirection);
   }
   step() {
+    console.log('step', this.posX, this.posY)
+
     let nextStepX = this.posX;
     let nextStepY = this.posY;
+
     if (this.faceLeft) {
       nextStepX -= this.velocity;
     } else if (this.faceRight) {
@@ -471,12 +431,18 @@ class gameSprite extends gameAsset {
     } else if (this.faceDown) {
       nextStepY += this.velocity;
     }
+
+    console.log('step: nextStep', nextStepX, nextStepY)
+
+    eventManager.emit('playerMovement', { playerId: this.playerId, x: nextStepX, y: nextStepY, currentDirection: this.currentDirection });
     // request server to move instead of moving here => isColliding and updatePosition
     if (!this.isColliding(nextStepX, nextStepY)) {
-      this.posX = nextStepX;
-      this.posY = nextStepY;
-      this.updatePosition();
-      this.updateServerPosition();
+      // this.posX = nextStepX;
+      // this.posY = nextStepY;
+      // this.updatePosition();
+      // this.updateServerPosition();
+        //eventManager.emit('playerMovement', { playerId: this.playerId, x: nextStepX, y: nextStepY, currentDirection: this.currentDirection });
+        console.log('Server should move player if clients are in sync.')
       // this.renderSheet();
       // this.moveTrain();
     } else {
@@ -553,7 +519,7 @@ class followerSprite extends gameSprite {
     }
 
     // Update follower element position
-    this.updatePosition(this.posX, this.posY);
+    // this.updatePosition(this.posX, this.posY);
 
     return false;
   }
@@ -672,32 +638,54 @@ class mainPlayer extends gameSprite {
   }
   step() { 
     super.step(); 
-    // if (this.faceLeft) {
-    //   this.elm.style.backgroundImage = 'url(assets/rabillion/rabillionLeft.png)';
-    // } else if (this.faceRight) {
-    //   this.elm.style.backgroundImage = 'url(assets/rabillion/rabillionRight.png)';
-    // } else if (this.faceUp) {
-    //   this.elm.style.backgroundImage = 'url(assets/rabillion/rabillionBack.png)';
-    // } else if (this.faceDown) {
-    //   this.elm.style.backgroundImage = 'url(assets/rabillion/rabillionFront.png)';
-    // }
-    // this.flwrTrain.moveTrain(); 
+    console.log('step', this.posX, this.posY)
+
+    let nextStepX = this.posX;
+    let nextStepY = this.posY;
+
+    if (this.faceLeft) {
+      nextStepX -= this.velocity;
+    } else if (this.faceRight) {
+      nextStepX += this.velocity;
+    } else if (this.faceUp) {
+      nextStepY -= this.velocity;
+    } else if (this.faceDown) {
+      nextStepY += this.velocity;
+    }
+
+    // request server to move instead of moving here => isColliding and updatePosition
+    if (!this.isColliding(nextStepX, nextStepY)) {
+
+      console.log('step: nextStep', nextStepX, nextStepY)
+
+      eventManager.emit('playerMovement', { playerId: this.playerId, x: nextStepX, y: nextStepY, currentDirection: this.currentDirection });
+      // this.posX = nextStepX;
+      // this.posY = nextStepY;
+      // this.updatePosition();
+      // this.updateServerPosition();
+        //eventManager.emit('playerMovement', { playerId: this.playerId, x: nextStepX, y: nextStepY, currentDirection: this.currentDirection });
+        console.log('Server should move player if clients are in sync.')
+      // this.renderSheet();
+      // this.moveTrain();
+    } else {
+        // for moving if the dist is less than this.velocity but greater than 0
+    }
   }
   getElm() {
     return document.getElementById(this.playerId);
   }
   setFacingDirection(direction) {
     super.setFacingDirection(direction);
-   
-   
-
     // this.flwrTrain.currentDirection = direction;
     // this.flwrTrain.moveTrain();
   }
   updatePosition() {
     this.setZIndex();
+    console.log('updatePosition', this.posX, this.posY)
     this.elm.style.left = `${this.posX}px`;
     this.elm.style.top = `${this.posY}px`;
+
+    console.log('are we updating?')
     // this.flwrTrain.moveTrain();
   }
 }
@@ -821,7 +809,8 @@ socket.on('gameObjects', function (objectInfo) {
   socket.on('playerMoved', function (playerInfo) {
       //console.log(playerInfo.posX, playerInfo.posY, playerInfo.currentDirection);
     let movedPlayer = activePlayers.find(player => player.playerId === playerInfo.playerId);
-    //  console.log(movedPlayer);
+    console.log("I should be receiving something")
+    console.log(movedPlayer);
       // if (!movedPlayer) { // return from fn() => false
       //   return;
       // }
@@ -874,7 +863,24 @@ socket.on('gameObjects', function (objectInfo) {
         // Update posX and posY properties with new values
         gameAsset.instances[i].posX = movementData.x;
         gameAsset.instances[i].posY = movementData.y;
+        gameAsset.instances[i].currentDirection = movementData.direction;
 
+        // console.log(movementData.direction)
+
+        // console.log(gameAsset.instances[i].currentDirection);
+        if (gameAsset.instances[i].currentDirection === "left") {
+          // console.log('left');
+          // console.log(gameAsset.instances[i].elm);
+          gameAsset.instances[i].elm.style.backgroundImage = 'url(assets/slug/nud01_left.png)';
+        } else if (gameAsset.instances[i].currentDirection === "right") {
+          gameAsset.instances[i].elm.style.backgroundImage = 'url(assets/slug/nud01_right.png)';
+        } else if (gameAsset.instances[i].currentDirection === "up") {
+          gameAsset.instances[i].elm.style.backgroundImage = 'url(assets/slug/nud01_left.png)';
+        } else if (gameAsset.instances[i].currentDirection === "down") {
+          gameAsset.instances[i].elm.style.backgroundImage = 'url(assets/slug/nud01_right.png)';
+        }
+
+      //  console.log(gameAsset.instances[i]);
         gameAsset.instances[i].updatePosition();
         break; // Exit loop once instance is found and updated
       }

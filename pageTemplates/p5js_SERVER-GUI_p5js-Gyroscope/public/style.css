@@ -16,6 +16,14 @@ body {
     width: 100vw;
     height: 100vh;
 }
+#sketchContainer {
+    position: relative;
+    top: 50%; 
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 75%;
+    height: 75%;
+}
 #qrCodesDisplay {
     display: block;
     transform: scale(0.75);
@@ -23,4 +31,19 @@ body {
 #qrCodesDisplay > div {
     float: left;
     margin: 20px;
+}
+
+@media only screen and (min-width: 961px) { 
+    /* deskptop vars */
+    }
+@media only screen and (min-width:481px) and (max-width: 960px) {
+    /* tablet vars */
+    }
+@media only screen and (max-width: 480px) {
+        /* mobile vars */
+    #sketchContainer {
+        width: 75%;
+        height: 75%;
+    }
+    
 }

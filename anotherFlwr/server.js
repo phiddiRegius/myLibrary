@@ -133,68 +133,6 @@ class eventManager { // not implementing this yet... will be a mediator for beha
     // console.log('emitting things?')
   }
 }
-
-// for (let i = 0; i < numOfGameObjects; i++) { //flowerPots
-//   let coordinate = getNewCoordinate();
-//   // console.log(":", coordinate);
-
-//   // let flowerPot = {
-//   //   elmId: 'pot' + (i + 1),
-//   //   objectType: 'staticSprite',
-//   //   playerId: 'pot',
-//   //   posX: coordinate[0],
-//   //   posY: coordinate[1],
-//   //   width: 24,
-//   //   height: 36,
-//   //   isStatic: true,
-//   // };
-//   let staticSprite = new staticSpriteObject(`staticSprite`, `pot${i+1}`, coordinate[0], coordinate[1], 24, 36);
-//     staticSprite.createElement();
-//     // gameObjects.push(staticSprite);
-//     // gameObjects.push(flowerPot);
-// }
-// for (let i = 0; i < numOfGameObjects; i++) { // slugs
-//   // let coordinate = getNewCoordinate();
-//   // console.log(":", coordinate);
-
-//   let slug = {
-//     elmId: 'slug' + (i + 1),
-//     objectType: 'enemySprite',
-//     playerId: 'slug',
-//     posX:  randomPosition(50, mapWidth - 50),
-//     posY:  randomPosition(50, mapWidth - 50),
-//     width: 24,
-//     height: 36,
-//   };
-//   gameObjects.push(slug);
-// }
-// for (let i = 0; i < numOfFlowers; i++) { // flowers
-  
-//   // let coordinate = getNewCoordinate();
-//   // console.log(":", coordinate);
-
-//   // states: 
-//     // 0: Seed
-//     // 1: Sapling
-//     // 2: Mature
-
-//   let flower = {
-//     elmId: "flwr" + (i + 1),
-//     objectType: "flower",
-//     posX:  randomPosition(50, mapWidth - 50), //randomPosition(50, 250),
-//     posY:  randomPosition(50, mapWidth - 50), //randomPosition(50, 250),
-//     width: 10,
-//     height: 10,
-//     isObject: true,
-//     objectType: "flower",
-//     // canInteract: true,
-//     // inInventory: false,
-//     state: 0,
-//   };
-//   gameObjects.push(flower);
-// }
-
-// console.log(sprites)
 io.on('connection', function (socket) {
   const playerId = uuidv4();
 
@@ -214,7 +152,7 @@ io.on('connection', function (socket) {
       switch (objectType) {
         case 'staticSprite':
           for (let i = 0; i < numOfInstances; i++) {
-            let staticSprite = new staticSpriteObject(`staticSprite`, `pot${i+1}`, coordinate[i][0], coordinate[i][1], 24, 36);
+            let staticSprite = new staticSpriteObject(`staticSprite`, `pot${i+1}`, coordinate[i][0], coordinate[i][1], 24, 36,  'down');
             objectsToEmit.push(staticSprite);
             
           }
@@ -223,7 +161,7 @@ io.on('connection', function (socket) {
           break;
         case 'enemySprite':
           for (let i = 0; i < numOfInstances; i++) {
-            let slug = new followerSprite(`enemySprite`, `slug${i+1}`, coordinate[i][0], coordinate[i][1], 32, 20);
+            let slug = new followerSprite(`enemySprite`, `slug${i+1}`, coordinate[i][0], coordinate[i][1], 64, 64);
             objectsToEmit.push(slug);
           }
           socket.emit('gameObjects', objectsToEmit);
@@ -264,47 +202,6 @@ io.on('connection', function (socket) {
     // socket.emit('playerId', playerId);
     gameAssetsInitialized = true;
   }
-
-  // emit the non-active player elements to the map
-  // socket.emit('gameObjects', gameObjects);
-  // let objectsToEmit = [];
-  // for(let [objectType, numOfInstances, posX, posY] of numOfGameAssets) {
-  //   // let coordinate = getNewCoordinate();
-  //   let coordinate = coordinates[objectType];
-
-  //   switch (objectType) {
-  //     case 'staticSprite':
-  //       for (let i = 0; i < numOfInstances; i++) {
-  //         let staticSprite = new staticSpriteObject(`staticSprite`, `pot${i+1}`, coordinate[i][0], coordinate[i][1], 24, 36);
-  //         objectsToEmit.push(staticSprite);
-  //       }
-  //       // console.dir(gameAsset.instances);
-  //       socket.emit('gameObjects', objectsToEmit);
-  //       objectsToEmit.length = 0;
-  //       break;
-  //     case 'enemySprite':
-  //       for (let i = 0; i < numOfInstances; i++) {
-  //         let slug = new followerSprite(`enemySprite`, `slug${i+1}`, coordinate[i][0], coordinate[i][1], 24, 36);
-  //         objectsToEmit.push(slug);
-  //       }
-  //       // console.dir(gameAsset.instances);
-  //       socket.emit('gameObjects', objectsToEmit);
-  //       objectsToEmit.length = 0;
-  //       break;
-  //     case 'flower':
-  //       for (let i = 0; i < numOfInstances; i++) {
-  //         let flower = new worldItem(`flower`, `flwr${i+1}`, coordinate[i][0], coordinate[i][1], 10, 10);
-  //         objectsToEmit.push(flower);
-  //       }
-  //       // console.dir(gameAsset.instances);
-  //       socket.emit('gameObjects', objectsToEmit);
-  //       objectsToEmit.length = 0;
-  //       break;
-  //     default: 
-  //       console.log(`I do not recognize the objectType: ${objectType}`)
-  //     break;
-  //   }
-  // }
 
   // emit current players to all users on the main page
   socket.emit('currentPlayers', players);
@@ -348,16 +245,51 @@ io.on('connection', function (socket) {
   //     console.log(gameAsset.instances); 
   // });
 
+  // socket.on('playerMovement', function (movementData) {
+  //   // console.log('playerMovement: ', movementData);
+  //   if (players[movementData.playerId]) {
+
+  //    ?
+  //       players[movementData.playerId].posX = movementData.x;
+  //       players[movementData.playerId].posY = movementData.y;
+  //       players[movementData.playerId].currentDirection = movementData.currentDirection;
+
+  //       // console.log(players[movementData.playerId]);
+  //       socket.broadcast.emit('playerMoved', players[movementData.playerId]);
+  //     // }
+  //   } else {
+  //     console.log(`Error: ${movementData.playerId} is not a players object`);
+  //   }
+  // });
+
+  // socket.on('playerMovement', function (movementData) {
+  //   // console.log('playerMovement: ', movementData);
+  //   if (players[movementData.playerId]) {
+  //       players[movementData.playerId].posX = movementData.x;
+  //       players[movementData.playerId].posY = movementData.y;
+  //       players[movementData.playerId].currentDirection = movementData.currentDirection;
+
+  //       // console.log(players[movementData.playerId]);
+  //       socket.broadcast.emit('playerMoved', players[movementData.playerId]);
+  //     // }
+  //   } else {
+  //     console.log(`Error: ${movementData.playerId} is not a players object`);
+  //   }
+  // });
+
   socket.on('playerMovement', function (movementData) {
-    // console.log('playerMovement: ', movementData);
     if (players[movementData.playerId]) {
-
-      players[movementData.playerId].posX = movementData.x;
-      players[movementData.playerId].posY = movementData.y;
-      players[movementData.playerId].currentDirection = movementData.currentDirection;
-
-      // console.log(players[movementData.playerId]);
-      socket.broadcast.emit('playerMoved', players[movementData.playerId]);
+      // let player = players[movementData.playerId];
+      let player = gameAsset.instances.find(asset => asset.playerId === movementData.playerId);
+      
+      // console.log(gameAsset.instances)
+      if (!player.isColliding(movementData.x, movementData.y)) {
+        player.posX = movementData.x;
+        player.posY = movementData.y;
+        player.currentDirection = movementData.currentDirection;
+        socket.broadcast.emit('playerMoved', player);
+        console.log(player);
+      }
     } else {
       console.log(`Error: ${movementData.playerId} is not a players object`);
     }
@@ -431,8 +363,8 @@ socket.on('planted', function (itemData) {
 });
 
 // 3000 for local
-// port for glitch
-server.listen(process.env.PORT, () => {
+// port for glitch process.env.PORT
+server.listen(3000, () => {
   console.log('listening on *:3000');
 });
 
@@ -500,7 +432,7 @@ class gameAsset {
           thisFootY > asset.posY && 
           thisFootY < asset.posY + asset.height
           ) {
-            this.collectWorldItem(asset);
+            // this.collectWorldItem(asset);
             console.log("Colliding with a collectable item");
               return false;
           }
@@ -623,58 +555,58 @@ class worldItem extends worldObject {
   //   }
   // }
 }
-class pathFinderSprite { // using this for the flowerTrain
-  constructor(player) {
-    this.player = player;
-    this.currentDirection = player.currentDirection;
-    this.colliderFoot = player.colliderFoot;
-    // train stuff
-    this.maxPassengers = 5;
-    this.flwrTrain = [];
-    this.flwrDisplayWidth = 10;
-    this.flwrDisplayHeight = 10;
-    this.initialPos = 10;
-    this.collidable = false;
-    // slug stuff?
-  }
-  moveTrain() {
-    let buffer = 15; // space
-    let x = this.player.posX + this.player.width / 2 - this.flwrDisplayWidth / 2;
-    let y = this.player.posY + this.player.height - this.initialPos * 3;
-    let currentX = x;
-    let currentY = y;
-    for (let i = 0; i < this.maxPassengers; i++) {
-      switch (this.currentDirection) {
-        case 'down':
-          currentY = y - (i+1)*buffer;
-          break;
-        case 'right':
-          currentX = x - (i+1)*buffer;
-          break;
-        case 'up':
-          // currentY = y - (i+1)*distance;
-          currentY = y + (i+1)*buffer;
-          break;
-        case 'left':
-          currentX = x + (i+1)*buffer;
-          break;
-      }
-      let trainElm = this.flwrTrain[i];
-      if (!trainElm) {
-        // create a new train element if it doesn't exist yet
-        let newTrainElm = document.createElement('div');
-        newTrainElm.style.width = this.flwrDisplayWidth + 'px';
-        newTrainElm.style.height = this.flwrDisplayHeight + 'px';
-        newTrainElm.classList.add('flowerTrain');
-        this.flwrTrain.push(newTrainElm);
-        gameMap.append(newTrainElm);
-        trainElm = newTrainElm;
-      }
-      trainElm.style.top = currentY + 'px';
-      trainElm.style.left = currentX + 'px';
-    }
-  }
-}
+// class pathFinderSprite {
+//   constructor(player) {
+//     this.player = player;
+//     this.currentDirection = player.currentDirection;
+//     this.colliderFoot = player.colliderFoot;
+//     // train stuff
+//     this.maxPassengers = 5;
+//     this.flwrTrain = [];
+//     this.flwrDisplayWidth = 10;
+//     this.flwrDisplayHeight = 10;
+//     this.initialPos = 10;
+//     this.collidable = false;
+//     // slug stuff?
+//   }
+//   moveTrain() {
+//     let buffer = 15; // space
+//     let x = this.player.posX + this.player.width / 2 - this.flwrDisplayWidth / 2;
+//     let y = this.player.posY + this.player.height - this.initialPos * 3;
+//     let currentX = x;
+//     let currentY = y;
+//     for (let i = 0; i < this.maxPassengers; i++) {
+//       switch (this.currentDirection) {
+//         case 'down':
+//           currentY = y - (i+1)*buffer;
+//           break;
+//         case 'right':
+//           currentX = x - (i+1)*buffer;
+//           break;
+//         case 'up':
+//           // currentY = y - (i+1)*distance;
+//           currentY = y + (i+1)*buffer;
+//           break;
+//         case 'left':
+//           currentX = x + (i+1)*buffer;
+//           break;
+//       }
+//       let trainElm = this.flwrTrain[i];
+//       if (!trainElm) {
+//         // create a new train element if it doesn't exist yet
+//         let newTrainElm = document.createElement('div');
+//         newTrainElm.style.width = this.flwrDisplayWidth + 'px';
+//         newTrainElm.style.height = this.flwrDisplayHeight + 'px';
+//         newTrainElm.classList.add('flowerTrain');
+//         this.flwrTrain.push(newTrainElm);
+//         gameMap.append(newTrainElm);
+//         trainElm = newTrainElm;
+//       }
+//       trainElm.style.top = currentY + 'px';
+//       trainElm.style.left = currentX + 'px';
+//     }
+//   }
+// }
 class gameSprite extends gameAsset {
   constructor(objectType, elmId, posX, posY, width, height, currentDirection) {
     super(objectType, elmId, posX, posY, width, height, currentDirection);
@@ -733,21 +665,21 @@ class followerSprite extends gameSprite {
     // console.log(gameAsset.instances);
     // console.log(this.targetPlayer);
   }
-  collectWorldItem(asset) { 
-    console.log("anything happening?")
-    console.log(asset);
-    console.log(`Picked up a ${asset.objectType}!`);
+  // collectWorldItem(asset) { 
+  //   console.log("anything happening?")
+  //   console.log(asset);
+  //   console.log(`Picked up a ${asset.objectType}!`);
 
-    console.log(this.playerId, asset.elmId);
+  //   console.log(this.playerId, asset.elmId);
 
-    socket.emit('worldItemCollected', {asset: asset});
-    this.inventory.push(asset); // emit this? or have the server understand the inventory of each?
-    console.log(`${this.elmId} inventory: ${JSON.stringify(this.inventory.length)}`);
-    //gameAsset.delete(asset); // uh generate new flower?
+  //   socket.emit('worldItemCollected', {asset: asset});
+  //   this.inventory.push(asset); // emit this? or have the server understand the inventory of each?
+  //   console.log(`${this.elmId} inventory: ${JSON.stringify(this.inventory.length)}`);
+  //   //gameAsset.delete(asset); // uh generate new flower?
 
-    //asset.removeElm(asset.elmId); /// emit 
-    //this.updateCurrencyCounter(); // need to emit this
-  }
+  //   //asset.removeElm(asset.elmId); /// emit 
+  //   //this.updateCurrencyCounter(); // need to emit this
+  // }
   static followTarget(follower, target) {
     follower.isTargetting = true;
     console.log(`${follower.elmId} is going to follow ${target.elmId}`);
@@ -781,14 +713,21 @@ class followerSprite extends gameSprite {
       direction = target.posY < this.posY ? "up" : "down";
     }
     if (direction === "left") {
+      this.currentDirection = "left";
       this.posX -= this.velocity;
     } else if (direction === "right") {
+      this.currentDirection = "left";
       this.posX += this.velocity;
     } else if (direction === "up") {
+      this.currentDirection = "up";
       this.posY -= this.velocity;
     } else if (direction === "down") {
+      this.currentDirection = "down";
       this.posY += this.velocity;
     }
+
+    // diagnol movement
+    
 
     //eventManager.emit('updateClientPosition', { id: this.elmId, x: this.posX, y: this.posY });
     // socket.emit('updateClientPosition', { id: this.elmId, x: this.posX, y: this.posY });
@@ -805,12 +744,13 @@ class followerSprite extends gameSprite {
           this.colliderFoot.posY < asset.posY + asset.height &&
           this.colliderFoot.posY + this.colliderFoot.height > asset.posY
         ) {
-          this.collectWorldItem(asset);
+          // this.collectWorldItem(asset);
           break;
         }
       }
     }
-    eventManager.emit('updateClientPosition', { id: this.elmId, x: this.posX, y: this.posY });
+    // console.log(this.currentDirection);
+    eventManager.emit('updateClientPosition', { id: this.elmId, x: this.posX, y: this.posY, direction: this.currentDirection });
 
     return false;
   }
