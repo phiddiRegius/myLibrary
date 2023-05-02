@@ -1,7 +1,7 @@
 // game.js ¯\_(ツ)_/¯
 
 // GLOBAL 
-// let debug = true;
+let debug = false;
 
 // let player;
 let gameIsStarted = false;
@@ -61,28 +61,28 @@ let plantButton = document.createElement('button');
   })
 
 // DEBUG PANEL
-// let debugToggle = document.createElement('input');
-// debugToggle.setAttribute('type', 'checkbox');
-// debugToggle.setAttribute('id', 'debugToggle');
+let debugToggle = document.createElement('input');
+debugToggle.setAttribute('type', 'checkbox');
+debugToggle.setAttribute('id', 'debugToggle');
 
-// let debugLabel = document.createElement('label');
-// debugLabel.setAttribute('for', 'debugToggle');
-// debugLabel.innerHTML = 'Debug mode';
+let debugLabel = document.createElement('label');
+debugLabel.setAttribute('for', 'debugToggle');
+debugLabel.innerHTML = 'Debug mode';
 
-// let debugDiv = document.createElement('div');
-// debugDiv.setAttribute('id', 'debugDiv');
-// debugDiv.append(debugToggle, debugLabel);
+let debugDiv = document.createElement('div');
+debugDiv.setAttribute('id', 'debugDiv');
+debugDiv.append(debugToggle, debugLabel);
 
-// let root = document.documentElement;
-// debugToggle.addEventListener('change', () => {
-//   if (debugToggle.checked) {
-//     root.style.setProperty('--display', 'block');
-//   } else {
-//     root.style.setProperty('--display', 'none');
-//   }
-// });
+let root = document.documentElement;
+debugToggle.addEventListener('change', () => {
+  if (debugToggle.checked) {
+    root.style.setProperty('--display', 'block');
+  } else {
+    root.style.setProperty('--display', 'none');
+  }
+});
 
-startMenu.append(startButton);
+startMenu.append(startButton, debugToggle);
 
 let gameMap = document.createElement('div');
   gameMap.setAttribute('id', 'gameMap');
@@ -305,19 +305,23 @@ class gameAsset {
 
  if (className === "mainPlayer" || className === "guestPlayer") {
     elm.setAttribute("id", this.playerId);
-    elm.innerHTML = `<p class="debugTag">${this.playerId}</p>`;
+    if(debug) {
+      elm.innerHTML = `<p class="debugTag">${this.playerId}</p>`;
+    }
 
-    this.canvas = document.createElement('canvas');
-    this.canvas.style.width = this.width;
-    this.canvas.style.height = this.height;
-    this.canvas.style.position = 'absolute';
-    this.canvas.style.top = '0';
-    this.canvas.style.left = '0';
+    // this.canvas = document.createElement('canvas');
+    // this.canvas.style.width = this.width;
+    // this.canvas.style.height = this.height;
+    // this.canvas.style.position = 'absolute';
+    // this.canvas.style.top = '0';
+    // this.canvas.style.left = '0';
 
-    this.ctx = this.canvas.getContext('2d');
+    // this.ctx = this.canvas.getContext('2d');
     // elm.append(this.canvas);
   } else {
-    elm.innerHTML = `<p class="debugTag">${this.elmId}</p>`;
+    if(debug) {
+      elm.innerHTML = `<p class="debugTag">${this.elmId}</p>`;
+    }
   }
 
   // this.updatePosition();
@@ -381,11 +385,28 @@ class staticSpriteObject extends interactiveObject {
   }
 }
 class worldItem extends worldObject {
-  constructor(objectType, elmId, posX, posY, width, height) {
+  constructor(objectType, elmId, posX, posY, width, height, state, color) {
     super(objectType, elmId, posX, posY, width, height);
+    this.state = state;
+    this.color = color;
     this.collidable = false;
     this.isCollectable = true;
     // console.log(this);
+  }
+  itemState() {
+    // console.log(this.state);
+    switch (this.state) {
+      case '1': // sprout state
+        // console.log(this.state, this.color);
+          this.elm.style.backgroundImage = `url(assets/flower/1/${this.color}.png)`;
+        break;
+      case '2': // sapling state
+          this.elm.style.backgroundImage = `url(assets/flower/2/${this.color}.png)`;
+        break;
+      case '3': // mature state
+          this.elm.style.backgroundImage = `url(assets/flower/2/${this.color}.png)`;
+        break;
+    }
   }
   // static collectWorldItem() {
   //   if (this.isCollectable && this.isColliding(posX, posY)) {
@@ -492,22 +513,103 @@ class followerSprite extends gameSprite {
     asset.removeElm(asset.elmId);
     this.updateCurrencyCounter();
   }
-  move(target) {
-    let dx = Math.abs(target.posX - this.posX);
-    let dy = Math.abs(target.posY - this.posY);
-    let distance = dx + dy;
+  // move(target) {
+  //   let dx = Math.abs(target.posX - this.posX);
+  //   let dy = Math.abs(target.posY - this.posY);
+  //   let distance = dx + dy;
 
-    // Check if follower is already at the target position
-    if (distance === 0) {
-      console.log(`${this.elmId} caught the thing`);
-      return true;
-    }
-    let direction = "";
-    if (dx > dy) {
-      direction = target.posX < this.posX ? "left" : "right";
-    } else {
-      direction = target.posY < this.posY ? "up" : "down";
-    }
+  //   // Check if follower is already at the target position
+  //   if (distance === 0) {
+  //     console.log(`${this.elmId} caught the thing`);
+  //     return true;
+  //   }
+  //   let direction = "";
+  //   if (dx > dy) {
+  //     direction = target.posX < this.posX ? "left" : "right";
+  //   } else {
+  //     direction = target.posY < this.posY ? "up" : "down";
+  //   }
+  //   if (direction === "left") {
+  //     this.posX -= this.velocity;
+  //   } else if (direction === "right") {
+  //     this.posX += this.velocity;
+  //   } else if (direction === "up") {
+  //     this.posY -= this.velocity;
+  //   } else if (direction === "down") {
+  //     this.posY += this.velocity;
+  //   }
+
+  //   // Update follower element position
+  //   // this.updatePosition(this.posX, this.posY);
+
+  //   return false;
+  // }
+//   move(target) {
+//     const dx = target.posX - this.posX;
+//     const dy = target.posY - this.posY;
+//     const distance = Math.sqrt(dx * dx + dy * dy);
+
+//     if (distance === 0) {
+//       console.log(`${this.elmId} caught the thing`);
+//       return true;
+//     }
+//     const threshold = 50;
+//     let direction = this.currentDirection;
+//     if (distance > threshold) {
+//         const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+//         if (angle >= -45 && angle <= 45) {
+//             direction = "right";
+//         } else if (angle > 45 && angle <= 135) {
+//             direction = "down";
+//         } else if (angle > 135 || angle <= -135) {
+//             direction = "left";
+//         } else if (angle > -135 && angle <= -45) {
+//             direction = "up";
+//         }
+//         this.currentDirection = direction;
+//     }
+
+//     if (direction === "left") {
+//         this.posX -= this.velocity;
+//     } else if (direction === "right") {
+//         this.posX += this.velocity;
+//     } else if (direction === "up") {
+//         this.posY -= this.velocity;
+//     } else if (direction === "down") {
+//         this.posY += this.velocity;
+//     }
+
+//     return false;
+// }
+
+move(target) {
+  const dx = target.posX - this.posX;
+  const dy = target.posY - this.posY;
+  const distance = Math.sqrt(dx * dx + dy * dy);
+
+  if (distance === 0) {
+    console.log(`${this.elmId} caught the thing`);
+    return true;
+  }
+
+  const threshold = 50;
+  const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+  const angleDelta = angle - this.currentDirection;
+  const smoothingFactor = 0.5;
+  this.currentDirection += angleDelta * smoothingFactor;
+
+  let direction = "";
+  if (this.currentDirection >= -45 && this.currentDirection <= 45) {
+    direction = "right";
+  } else if (this.currentDirection > 45 && this.currentDirection <= 135) {
+    direction = "down";
+  } else if (this.currentDirection > 135 || this.currentDirection <= -135) {
+    direction = "left";
+  } else if (this.currentDirection > -135 && this.currentDirection <= -45) {
+    direction = "up";
+  }
+
+  if (distance > threshold) {
     if (direction === "left") {
       this.posX -= this.velocity;
     } else if (direction === "right") {
@@ -517,12 +619,13 @@ class followerSprite extends gameSprite {
     } else if (direction === "down") {
       this.posY += this.velocity;
     }
-
-    // Update follower element position
-    // this.updatePosition(this.posX, this.posY);
-
     return false;
+  } else {
+    return true;
   }
+}
+
+
 }
 class mainPlayer extends gameSprite {
   constructor(objectType, elmId, posX, posY, width, height, currentDirection) {
@@ -536,18 +639,17 @@ class mainPlayer extends gameSprite {
     this.velocity = 5;
     this.inventory = [];
     //
-    this.numFrames = 4;
-    this.currentFrame = 0;
+    // this.numFrames = 4;
+    // this.currentFrame = 0;
+    // this.frames = [
+    //   '1.png',
+    //   '2.png',
+    //   '3.png',
+    //   '4.png'
+    // ];
 
-    this.spriteSheet = new Image();
-    this.spriteSheet.src = 'assets/player/playerSheet.png'
-    // this.elm.style.backgroundImage = 'url(assets/rabillion/rabillionFront.png)';
-    // this.renderSheet();
-    // this.staticSprite;
-    let self = this;
-      this.spriteSheet.onload = function() {
-      // self.renderSheet();
-    }
+    // // Set initial image to first frame
+    // this.setDirection(this.currentDirection);
   }
   // renderSheet() {
   //   let spriteSheetX = 0;
@@ -678,6 +780,18 @@ class mainPlayer extends gameSprite {
     super.setFacingDirection(direction);
     // this.flwrTrain.currentDirection = direction;
     // this.flwrTrain.moveTrain();
+    // this.currentDirection = direction;
+    // let frameIndex = 0;
+    // if (this.faceDown) {
+    //   frameIndex = 0;
+    // } else if (this.faceUp) {
+    //   frameIndex = 1;
+    // } else if (this.faceLeft) {
+    //   frameIndex = 2;
+    // } else if (this.faceRight) {
+    //   frameIndex = 3;
+    // }
+    // this.elm.style.backgroundImage = `url(assets/player/${this.currentDirection}/${this.frames[frameIndex]})`;
   }
   updatePosition() {
     this.setZIndex();
@@ -685,7 +799,21 @@ class mainPlayer extends gameSprite {
     this.elm.style.left = `${this.posX}px`;
     this.elm.style.top = `${this.posY}px`;
 
-    console.log('are we updating?')
+    switch (this.currentDirection) {
+      case 'left': // sprout state
+        // console.log(this.state, this.color);
+          this.elm.style.backgroundImage = `url(assets/player/${this.currentDirection}/${this.currentDirection}.gif)`;
+        break;
+      case 'right':
+          this.elm.style.backgroundImage = `url(assets/player/${this.currentDirection}/${this.currentDirection}.gif)`;
+        break;
+      case 'up': 
+          this.elm.style.backgroundImage = `url(assets/player/${this.currentDirection}/${this.currentDirection}.gif)`;
+        break;
+        case 'down': 
+          this.elm.style.backgroundImage = `url(assets/player/${this.currentDirection}/${this.currentDirection}.gif)`;
+        break;
+    }
     // this.flwrTrain.moveTrain();
   }
 }
@@ -699,15 +827,16 @@ class guestPlayer extends mainPlayer {
 socket.on('gameObjects', function (objectInfo) {
   console.log(objectInfo);
   objectInfo.forEach((info) => {
-        let { objectType, elmId, posX, posY, width, height, currentDirection } = info; // deconstruct objectInfo
+        let { objectType, elmId, posX, posY, width, height, currentDirection, state, color } = info; // deconstruct objectInfo
 
         if(objectType == 'staticSprite') {
           let staticSprite = new staticSpriteObject(objectType, elmId, posX, posY, width, height);
             staticSprite.createElement();
             // gameObjects.push(staticSprite);
         } if(objectType == 'flower') {
-          let flower = new worldItem(objectType, elmId, posX, posY, width, height);
+          let flower = new worldItem(objectType, elmId, posX, posY, width, height, state, color);
             flower.createElement();
+            flower.itemState();
           //   gameObjects.push(flower);
         } if(objectType == 'enemySprite') {
           let slug = new followerSprite(objectType, elmId, posX, posY, width, height, currentDirection);
@@ -715,26 +844,6 @@ socket.on('gameObjects', function (objectInfo) {
             //socket.emit('assignTarget', { slugId: slug.elmId, targetType: 'player', targetId: playerId });
         }
     });
-
-    // console.log(gameAsset.instances);
-    // socket.emit('updateGameAssets', gameAsset.instances);
-    // socket.emit('updateGameAssets', JSON.stringify(gameAsset.instances));
-
-    // let gettingFollowers = gameAsset.instances.filter(asset => asset instanceof followerSprite);
-    
-    // if(gameAsset.instances.length > 0) {
-    //     let gettingTargets = gameAsset.instances.filter(asset => asset instanceof mainPlayer || asset instanceof guestPlayer || asset instanceof worldItem);
-    //       console.log(gettingTargets);
-
-    //       socket.emit('hitList', {list: gettingTargets}); 
-    //       // should emit potential targets to the server then determine => 
-    //       // let randomIndex = Math.floor(Math.random() * gettingTargets.length);
-    //       // let target = gettingTargets[randomIndex];
-
-    //       // console.log(target);
-    //       // followerSprite.followTarget(target); // what if I emit first => tell server to give everyone this one?
-    //       // // no need to tell server who the potential targets are then update
-    //   }
   });
   socket.on('playerId', function(playerId) {
     console.log(`Received ${playerId} from server`);
@@ -860,6 +969,7 @@ socket.on('gameObjects', function (objectInfo) {
 
     for (let i = 0; i < gameAsset.instances.length; i++) {
       if (gameAsset.instances[i].elmId === movementData.id) {
+        // console.log(gameAsset.instances[i])
         // Update posX and posY properties with new values
         gameAsset.instances[i].posX = movementData.x;
         gameAsset.instances[i].posY = movementData.y;
@@ -868,16 +978,15 @@ socket.on('gameObjects', function (objectInfo) {
         // console.log(movementData.direction)
 
         // console.log(gameAsset.instances[i].currentDirection);
+        // in the case of gameAsset.instances[i].objectType = 'enemySprite'
         if (gameAsset.instances[i].currentDirection === "left") {
-          // console.log('left');
-          // console.log(gameAsset.instances[i].elm);
           gameAsset.instances[i].elm.style.backgroundImage = 'url(assets/slug/nud01_left.png)';
         } else if (gameAsset.instances[i].currentDirection === "right") {
           gameAsset.instances[i].elm.style.backgroundImage = 'url(assets/slug/nud01_right.png)';
         } else if (gameAsset.instances[i].currentDirection === "up") {
-          gameAsset.instances[i].elm.style.backgroundImage = 'url(assets/slug/nud01_left.png)';
+          gameAsset.instances[i].elm.style.backgroundImage = 'url(assets/slug/nud01_back.png)';
         } else if (gameAsset.instances[i].currentDirection === "down") {
-          gameAsset.instances[i].elm.style.backgroundImage = 'url(assets/slug/nud01_right.png)';
+          gameAsset.instances[i].elm.style.backgroundImage = 'url(assets/slug/nud01_front.png)';
         }
 
       //  console.log(gameAsset.instances[i]);

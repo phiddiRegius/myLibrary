@@ -72,7 +72,7 @@ p {
     position: relative;
     /* width: 4000px;
     height: 4000px; */
-    background-color: aliceblue;
+    /* background-color: rgb(53, 140, 77); */
     background-image: url(assets/world/grassMapMed.png);
     background-repeat: no-repeat;
     /* overflow: hidden; */
@@ -92,11 +92,13 @@ p {
     background-color: rgb(202, 202, 202);
 }
 .staticSpriteObject {
-    background-color: rgb(118, 169, 227);
+    /* background-color: rgb(118, 169, 227); */
 }
 .item {
     position: absolute;
-    background-color: rgb(225, 227, 118);
+    /* background-color: rgb(225, 227, 118); */
+    background-position: center;
+    background-repeat: no-repeat;
 }
 .followerSprite {
     position: absolute;
@@ -109,14 +111,16 @@ p {
     top: 50%;
     left: 50%;
     /* transform: translate(-50%, -50%); */
-    background-color: rgb(120, 227, 118);
+    /* background-color: rgb(120, 227, 118); */
+    background-position: center;
+    background-repeat: no-repeat;
 }
 canvas {
     position: absolute;
 }
 .guestPlayer {
     position: absolute;
-    background-color: rgb(183, 118, 227);
+    /* background-color: rgb(183, 118, 227); */
 }
 .colliderFoot {
     /* background-color: rgba(227, 227, 227, 0.66); */
@@ -130,7 +134,8 @@ canvas {
 }
 .flower {
     position: absolute;
-    background-color: rgb(224, 137, 218);
+    /* transform: scale(10); */
+    /* background-color: rgb(224, 137, 218); */
 }
 .slug {
     position: absolute;
@@ -138,7 +143,7 @@ canvas {
 }
 .sprite {
     position: absolute;
-    background-color: aqua;
+    /* background-color: aqua; */
 }
 
 /* arrows for tracking face direction */

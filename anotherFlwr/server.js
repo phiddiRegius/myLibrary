@@ -50,10 +50,16 @@ function generateRandomCoordinates(numOfInstances, mapWidth) {
   return coordinates;
 }
 
+const commonColors = [  
+  { color: 'red', rarity: 0.5 },  
+  { color: 'yellow', rarity: 0.3 },  
+  { color: 'orange', rarity: 0.2 },
+];
+
 let numOfGameAssets = [
   ['staticSprite', 14], 
   ['enemySprite', 7],
-  ['flower', 30],
+  ['flower', 30, [10, 10, 10]],
 ];
 
 let coordinates = {};
@@ -146,13 +152,13 @@ io.on('connection', function (socket) {
     socket.emit('gameObjects', gameAsset.instances);
   } else {
     let objectsToEmit = [];
-    for(let [objectType, numOfInstances, posX, posY] of numOfGameAssets) {
+    for(let [objectType, numOfInstances, state] of numOfGameAssets) {
       let coordinate = generateRandomCoordinates(numOfInstances, mapWidth);
 
       switch (objectType) {
         case 'staticSprite':
           for (let i = 0; i < numOfInstances; i++) {
-            let staticSprite = new staticSpriteObject(`staticSprite`, `pot${i+1}`, coordinate[i][0], coordinate[i][1], 24, 36,  'down');
+            let staticSprite = new staticSpriteObject(`staticSprite`, `pot${i+1}`, coordinate[i][0], coordinate[i][1], 68, 61,  'down');
             objectsToEmit.push(staticSprite);
             
           }
@@ -167,14 +173,53 @@ io.on('connection', function (socket) {
           socket.emit('gameObjects', objectsToEmit);
           objectsToEmit.length = 0;
           break;
+        // case 'flower':
+        //   for (let i = 0; i < numOfInstances; i++) {
+        //     let flower = new worldItem(`flower`, `flwr${i+1}`, coordinate[i][0], coordinate[i][1], 10, 10, what state?);
+        //     objectsToEmit.push(flower);
+        //   }
+        //   socket.emit('gameObjects', objectsToEmit);
+        //   objectsToEmit.length = 0;
+        //   break;
         case 'flower':
+          let [numOfState1, numOfState2, numOfState3] = state;
+          let stateCounts = {
+            1: numOfState1,
+            2: numOfState2,
+            3: numOfState3
+          };
           for (let i = 0; i < numOfInstances; i++) {
-            let flower = new worldItem(`flower`, `flwr${i+1}`, coordinate[i][0], coordinate[i][1], 10, 10);
+            let color = commonColors[Math.floor(Math.random() * commonColors.length)].color;
+            let state = Object.keys(stateCounts)[Math.floor(Math.random() * Object.keys(stateCounts).length)];
+            let flower = new worldItem(`flower`, `flwr${i+1}`, coordinate[i][0], coordinate[i][1], 19, 16, state, color);
+            // this.color = color;
             objectsToEmit.push(flower);
+            if (--stateCounts[state] === 0) {
+              delete stateCounts[state];
+            }
           }
           socket.emit('gameObjects', objectsToEmit);
           objectsToEmit.length = 0;
           break;
+
+        // case 'flower':
+        //   let [numOfState1, numOfState2, numOfState3] = state;
+        //   let stateCounts = {
+        //     1: numOfState1,
+        //     2: numOfState2,
+        //     3: numOfState3
+        //   };
+        //   for (let i = 0; i < numOfInstances; i++) {
+        //     let state = Object.keys(stateCounts)[Math.floor(Math.random() * Object.keys(stateCounts).length)];
+        //     let flower = new worldItem(`flower`, `flwr${i+1}`, coordinate[i][0], coordinate[i][1], 10, 10, state);
+        //     objectsToEmit.push(flower);
+        //     if (--stateCounts[state] === 0) {
+        //       delete stateCounts[state];
+        //     }
+        //   }
+        //   socket.emit('gameObjects', objectsToEmit);
+        //   objectsToEmit.length = 0;
+        //   break;
         default: 
           console.log(`I do not recognize the objectType: ${objectType}`)
         break;
@@ -284,10 +329,11 @@ io.on('connection', function (socket) {
       
       // console.log(gameAsset.instances)
       if (!player.isColliding(movementData.x, movementData.y)) {
+        console.log(player.posX, player.posY, movementData.x, movementData.y)
         player.posX = movementData.x;
         player.posY = movementData.y;
         player.currentDirection = movementData.currentDirection;
-        socket.broadcast.emit('playerMoved', player);
+        io.emit('playerMoved', player);
         console.log(player);
       }
     } else {
@@ -543,8 +589,10 @@ class staticSpriteObject extends interactiveObject {
   }
 }
 class worldItem extends worldObject {
-  constructor(objectType, elmId, posX, posY, width, height) {
+  constructor(objectType, elmId, posX, posY, width, height, state, color) {
     super(objectType, elmId, posX, posY, width, height);
+    this.state = state;
+    this.color = color;
     this.collidable = false;
     this.isCollectable = true;
     // console.log(this);
@@ -692,68 +740,123 @@ class followerSprite extends gameSprite {
       }
     }, 100);
   }
+  // move(target) {
+  //   // if(this.isColliding(this.posX, this.posY)) {
+  //   //   // console.log("trying my best");
+  //   // }
+
+  //   let dx = Math.abs(target.posX - this.posX);
+  //   let dy = Math.abs(target.posY - this.posY);
+  //   let distance = dx + dy;
+
+  //   // Check if follower is already at the target position
+  //   if (distance === 0) {
+  //     console.log(`${this.elmId} caught the thing`);
+  //     return true;
+  //   }
+  //   let direction = "";
+  //   if (dx > dy) {
+  //     direction = target.posX < this.posX ? "left" : "right";
+  //   } else {
+  //     direction = target.posY < this.posY ? "up" : "down";
+  //   }
+  //   if (direction === "left") {
+  //     this.currentDirection = "left";
+  //     this.posX -= this.velocity;
+  //   } else if (direction === "right") {
+  //     this.currentDirection = "left";
+  //     this.posX += this.velocity;
+  //   } else if (direction === "up") {
+  //     this.currentDirection = "up";
+  //     this.posY -= this.velocity;
+  //   } else if (direction === "down") {
+  //     this.currentDirection = "down";
+  //     this.posY += this.velocity;
+  //   }
+
+  //   // diagnol movement
+    
+
+  //   //eventManager.emit('updateClientPosition', { id: this.elmId, x: this.posX, y: this.posY });
+  //   // socket.emit('updateClientPosition', { id: this.elmId, x: this.posX, y: this.posY });
+
+  //   // Update follower element position
+  //   // this.updatePosition(this.posX, this.posY);
+
+  //   for (let asset of gameAsset.instances) {
+  //     if (asset !== this && asset.isCollectable) {
+  //       // console.log('collectable asset here!')
+  //       if (
+  //         this.colliderFoot.posX < asset.posX + asset.width &&
+  //         this.colliderFoot.posX + this.colliderFoot.width > asset.posX &&
+  //         this.colliderFoot.posY < asset.posY + asset.height &&
+  //         this.colliderFoot.posY + this.colliderFoot.height > asset.posY
+  //       ) {
+  //         // this.collectWorldItem(asset);
+  //         break;
+  //       }
+  //     }
+  //   }
+  //   // console.log(this.currentDirection);
+  //   eventManager.emit('updateClientPosition', { id: this.elmId, x: this.posX, y: this.posY, direction: this.currentDirection });
+
+  //   return false;
+  // }
+
+
   move(target) {
-    // if(this.isColliding(this.posX, this.posY)) {
-    //   // console.log("trying my best");
-    // }
+    const dx = target.posX - this.posX;
+    const dy = target.posY - this.posY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
 
-    let dx = Math.abs(target.posX - this.posX);
-    let dy = Math.abs(target.posY - this.posY);
-    let distance = dx + dy;
-
-    // Check if follower is already at the target position
     if (distance === 0) {
       console.log(`${this.elmId} caught the thing`);
       return true;
     }
-    let direction = "";
-    if (dx > dy) {
-      direction = target.posX < this.posX ? "left" : "right";
-    } else {
-      direction = target.posY < this.posY ? "up" : "down";
+
+    const threshold = 50;
+    let direction = this.currentDirection;
+    if (distance > threshold) {
+        const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+        if (angle >= -45 && angle <= 45) {
+          direction = "right";
+        } else if (angle > 45 && angle <= 135) {
+          direction = "down";
+        } else if (angle > 135 || angle <= -135) {
+          direction = "left";
+        } else if (angle > -135 && angle <= -45) {
+          direction = "up";
+        }        
+        this.currentDirection = direction;
     }
+
+    // Move in the current direction
     if (direction === "left") {
-      this.currentDirection = "left";
-      this.posX -= this.velocity;
+        this.posX -= this.velocity;
     } else if (direction === "right") {
-      this.currentDirection = "left";
-      this.posX += this.velocity;
+        this.posX += this.velocity;
     } else if (direction === "up") {
-      this.currentDirection = "up";
-      this.posY -= this.velocity;
+        this.posY -= this.velocity;
     } else if (direction === "down") {
-      this.currentDirection = "down";
-      this.posY += this.velocity;
+        this.posY += this.velocity;
     }
-
-    // diagnol movement
-    
-
-    //eventManager.emit('updateClientPosition', { id: this.elmId, x: this.posX, y: this.posY });
-    // socket.emit('updateClientPosition', { id: this.elmId, x: this.posX, y: this.posY });
-
-    // Update follower element position
-    // this.updatePosition(this.posX, this.posY);
 
     for (let asset of gameAsset.instances) {
       if (asset !== this && asset.isCollectable) {
-        // console.log('collectable asset here!')
         if (
           this.colliderFoot.posX < asset.posX + asset.width &&
           this.colliderFoot.posX + this.colliderFoot.width > asset.posX &&
           this.colliderFoot.posY < asset.posY + asset.height &&
           this.colliderFoot.posY + this.colliderFoot.height > asset.posY
         ) {
-          // this.collectWorldItem(asset);
           break;
         }
       }
     }
-    // console.log(this.currentDirection);
-    eventManager.emit('updateClientPosition', { id: this.elmId, x: this.posX, y: this.posY, direction: this.currentDirection });
-
-    return false;
+      eventManager.emit('updateClientPosition', { id: this.elmId, x: this.posX, y: this.posY, direction: this.currentDirection });
+      return false;
   }
+
 }
 class mainPlayer extends gameSprite {
   constructor(objectType, elmId, posX, posY, width, height, currentDirection) {
