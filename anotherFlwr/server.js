@@ -158,7 +158,7 @@ io.on('connection', function (socket) {
       switch (objectType) {
         case 'staticSprite':
           for (let i = 0; i < numOfInstances; i++) {
-            let staticSprite = new staticSpriteObject(`staticSprite`, `pot${i+1}`, coordinate[i][0], coordinate[i][1], 68, 61,  'down');
+            let staticSprite = new staticSpriteObject(`staticSprite`, `pot${i+1}`, coordinate[i][0], coordinate[i][1], 91, 65,  'down');
             objectsToEmit.push(staticSprite);
             
           }
@@ -191,7 +191,13 @@ io.on('connection', function (socket) {
           for (let i = 0; i < numOfInstances; i++) {
             let color = commonColors[Math.floor(Math.random() * commonColors.length)].color;
             let state = Object.keys(stateCounts)[Math.floor(Math.random() * Object.keys(stateCounts).length)];
-            let flower = new worldItem(`flower`, `flwr${i+1}`, coordinate[i][0], coordinate[i][1], 19, 16, state, color);
+            let flower = new worldItem(`flower`, `flwr${i+1}`, coordinate[i][0], coordinate[i][1], 48, 48, state, 'white');
+            this.collidable = true;
+            if(state === 3) {
+              this.isCollectable = true;
+            } else {
+              this.isCollectable = false;
+            }
             // this.color = color;
             objectsToEmit.push(flower);
             if (--stateCounts[state] === 0) {
@@ -227,9 +233,9 @@ io.on('connection', function (socket) {
     }
     
     let gettingTargets = gameAsset.instances.filter(asset => asset.objectType == 'flower' ||  asset.objectType == 'player');
-    console.log("Can assign these targets: ", gettingTargets);
+    // console.log("Can assign these targets: ", gettingTargets);
     shuffleArray(gettingTargets); // so I dont have to randomize 
-    console.log(gettingTargets);
+    // console.log(gettingTargets);
   // socket.emit('assignTargets', gettingTargets);
 
     let gettingFollowers = gameAsset.instances.filter(asset => asset instanceof followerSprite);
@@ -257,7 +263,7 @@ io.on('connection', function (socket) {
     // let staticSprite = gameAsset.instances.find(object => object.isStatic === true);
     //let staticSprite = gameAsset.instances.filter(asset => asset.objectType == 'staticSprite' && asset.isStatic === true).shift();
     let staticSprite = gameAsset.instances.filter(asset => asset.objectType == 'staticSprite' && asset.isStatic === true)[0];
-      console.log("Loading this object:", staticSprite);
+      // console.log("Loading this object:", staticSprite);
 
     players[playerId] = {
       // playerId: playerId,
@@ -271,13 +277,6 @@ io.on('connection', function (socket) {
 
     staticSprite.isStatic = false;
     staticSprite.playerId = playerId;
-
-    //console.log(players);
-  //   let gettingTargets = gameObjects.filter(object => object.objectType == 'flower' ||  object.objectType == 'player');
-  // // console.log("Can assign these targets: ", gettingTargets);
-  //     shuffleArray(gettingTargets); // so I dont have to randomize 
-  //     console.log(gettingTargets);
-  //     socket.emit('assignTargets', gettingTargets);
 
     // socket.emit('playerId', playerId);
     socket.emit('currentPlayers', players);
@@ -329,31 +328,36 @@ io.on('connection', function (socket) {
       
       // console.log(gameAsset.instances)
       if (!player.isColliding(movementData.x, movementData.y)) {
-        console.log(player.posX, player.posY, movementData.x, movementData.y)
+        // console.log(player.posX, player.posY, movementData.x, movementData.y)
         player.posX = movementData.x;
         player.posY = movementData.y;
         player.currentDirection = movementData.currentDirection;
+        
         io.emit('playerMoved', player);
-        console.log(player);
+      
+        // console.log(player);
       }
     } else {
       console.log(`Error: ${movementData.playerId} is not a players object`);
     }
   });
 
-  socket.on('worldItemCollected', function (itemData) { //NEED TO ADD PROPERTY FOR IF ISCOLLECTED 
-    // console.log('collectedItem: ', itemData);
-      socket.broadcast.emit('updateWorldItem', itemData);
+  // socket.on('worldItemCollected', function (itemData) { //NEED TO ADD PROPERTY FOR IF ISCOLLECTED 
+  //   // console.log('collectedItem: ', itemData);
+  //     io.emit('updateWorldItem', itemData);
+  //     // console.log(itemData.elmId);
 
-      // console.log(itemData.elmId);
-
-      // let flower = new worldItem(`flower`, `flwr${itemData.elmId}`, coordinate[i][0], coordinate[i][1], 10, 10);
+  //     // let flower = new worldItem(`flower`, `flwr${itemData.elmId}`, coordinate[i][0], coordinate[i][1], 10, 10);
             
-  });
+  // });
 
 socket.on('planted', function (itemData) { 
   // console.log('plantedItem: ', itemData);
-    socket.broadcast.emit('plantedItem', itemData);   
+    io.emit('plantedItem', itemData); // telling all clients that the flower is being planted  
+});
+
+socket.on('pickFlower', function (data) { 
+ console.log(data);
 });
 
   socket.on('disconnect', function () {
@@ -428,6 +432,8 @@ class gameAsset {
     this.posY = posY;
     this.width = width;
     this.height = height;
+    this.state;
+    this.zIndex;
 
     this.colliderFoot = {
       width: this.width,
@@ -446,6 +452,40 @@ class gameAsset {
       gameAsset.instances.splice(index, 1);
     }
   }
+  // isColliding(nextStepX, nextStepY) {
+  //   // Check if the player is WITHIN the bounds of the game map
+  //   if (nextStepX >= 0 && nextStepX < mapWidth - this.width && nextStepY >= 0 && nextStepY < mapHeight - this.height) {
+  //     // Check for collisions with all assets
+  //     for (let i = 0; i < gameAsset.instances.length; i++) { //loop
+  //       let asset = gameAsset.instances[i]; 
+
+  //     if (asset !== this && asset.isCollectable) {
+  //       // console.log(gameAsset.instances);
+  //         let thisFootX = nextStepX + this.colliderFoot.posX;
+  //         let thisFootY = nextStepY + this.colliderFoot.posY;
+  //       if (
+  //         thisFootX > asset.posX &&
+  //         thisFootX < asset.posX + asset.width &&
+  //         thisFootY > asset.posY && 
+  //         thisFootY < asset.posY + asset.height
+  //         ) {
+  //           this.collectWorldItem(asset);
+  //           console.log("Colliding with a collectable item");
+  //             return false;
+  //         }
+  //       }
+  //     }
+  //     return false; // !isColliding
+  //   } else {
+  //     // player outside map bounds
+  //     return true;
+  //   }
+  // }
+  setZIndex() {
+    let colliderToe = this.posY - this.height;
+    let z = 1 + Math.floor(((colliderToe - 1) / mapHeight) *99);
+    this.elm.style.zIndex = z;
+  }
   isColliding(nextStepX, nextStepY) {
     // Check if the player is WITHIN the bounds of the game map
     if (nextStepX >= 0 && nextStepX < mapWidth - this.width && nextStepY >= 0 && nextStepY < mapHeight - this.height) {
@@ -453,36 +493,34 @@ class gameAsset {
       for (let i = 0; i < gameAsset.instances.length; i++) { //loop
         let asset = gameAsset.instances[i]; 
 
-        // let thisFootX = nextStepX + this.colliderFoot.posX;
-        // let thisFootY = nextStepY + this.colliderFoot.posY;
-        // let thisFootWidth = this.colliderFoot.width;
-        // let thisFootHeight = this.colliderFoot.height;
+        console.log(asset);
 
-        // if (asset !== this && asset.collidable) {
-        //   let assetFootX = asset.posX + asset.colliderFoot.width;
-        //   let assetFootY = asset.posY + asset.colliderFoot.height;
-        //   let playerFootX = nextStepX + this.colliderFoot.width;
-        //   let playerFootY = nextStepY + this.colliderFoot.height;
-        //   if (playerFootX + this.colliderFoot.offsetWidth > assetFootX && playerFootX < assetFootX + asset.colliderFoot.offsetWidth &&
-        //       playerFootY + this.colliderFoot.offsetHeight > assetFootY && playerFootY < assetFootY + asset.colliderFoot.offsetHeight) {
-        //     return true; // colliding
-        //   }
-        // }
-      if (asset !== this && asset.isCollectable) {
-        // console.log(gameAsset.instances);
-          let thisFootX = nextStepX + this.colliderFoot.posX;
-          let thisFootY = nextStepY + this.colliderFoot.posY;
-        if (
-          thisFootX > asset.posX &&
-          thisFootX < asset.posX + asset.width &&
-          thisFootY > asset.posY && 
-          thisFootY < asset.posY + asset.height
-          ) {
-            // this.collectWorldItem(asset);
-            console.log("Colliding with a collectable item");
-              return false;
+        if (asset !== this && asset.collidable) {
+          let assetFootX = asset.posX + asset.colliderFoot.offsetLeft;
+          let assetFootY = asset.posY + asset.colliderFoot.offsetTop;
+          let playerFootX = nextStepX + this.colliderFoot.offsetLeft;
+          let playerFootY = nextStepY + this.colliderFoot.offsetTop;
+          if (playerFootX + this.colliderFoot.offsetWidth > assetFootX && playerFootX < assetFootX + asset.colliderFoot.offsetWidth &&
+              playerFootY + this.colliderFoot.offsetHeight > assetFootY && playerFootY < assetFootY + asset.colliderFoot.offsetHeight) {
+                
+                
+            // if (asset.isCollectable && asset.state === 3) {
+            // //if (asset !== this && asset.isCollectable && asset.state === 3) {
+            //   // let assetFootX = asset.posX + asset.colliderFoot.offsetLeft;
+            //   // let assetFootY = asset.posY + asset.colliderFoot.offsetTop;
+            //   let playerFootX = nextStepX + this.colliderFoot.offsetLeft;
+            //   let playerFootY = nextStepY + this.colliderFoot.offsetTop;
+            //   if (playerFootX + this.colliderFoot.offsetWidth > asset.posX && playerFootX < asset.posX + asset.width &&
+            //       playerFootY + this.colliderFoot.offsetHeight > asset.posY && playerFootY < asset.posY + asset.height) {
+            //       this.collectWorldItem(asset);
+            //       return false;
+            //   }
+            // }
+                return true; // colliding
           }
         }
+        // could actually use this to know at all time what the player is colliding with?
+        
       }
       return false; // !isColliding
     } else {
@@ -567,7 +605,6 @@ class gameAsset {
     playerElm.id = this.playerId;
     playerElm.classList.add(type + "Player");
     this.playerId = playerElm.id; 
-    console.log
     return playerElm;
   }
 }
@@ -593,68 +630,11 @@ class worldItem extends worldObject {
     super(objectType, elmId, posX, posY, width, height);
     this.state = state;
     this.color = color;
-    this.collidable = false;
+    this.collidable = true;
     this.isCollectable = true;
     // console.log(this);
   }
-  // static collectWorldItem() {
-  //   if (this.isCollectable && this.isColliding(posX, posY)) {
-  //     console.log(`Picked up ${this.objectType}!`);
-  //   }
-  // }
 }
-// class pathFinderSprite {
-//   constructor(player) {
-//     this.player = player;
-//     this.currentDirection = player.currentDirection;
-//     this.colliderFoot = player.colliderFoot;
-//     // train stuff
-//     this.maxPassengers = 5;
-//     this.flwrTrain = [];
-//     this.flwrDisplayWidth = 10;
-//     this.flwrDisplayHeight = 10;
-//     this.initialPos = 10;
-//     this.collidable = false;
-//     // slug stuff?
-//   }
-//   moveTrain() {
-//     let buffer = 15; // space
-//     let x = this.player.posX + this.player.width / 2 - this.flwrDisplayWidth / 2;
-//     let y = this.player.posY + this.player.height - this.initialPos * 3;
-//     let currentX = x;
-//     let currentY = y;
-//     for (let i = 0; i < this.maxPassengers; i++) {
-//       switch (this.currentDirection) {
-//         case 'down':
-//           currentY = y - (i+1)*buffer;
-//           break;
-//         case 'right':
-//           currentX = x - (i+1)*buffer;
-//           break;
-//         case 'up':
-//           // currentY = y - (i+1)*distance;
-//           currentY = y + (i+1)*buffer;
-//           break;
-//         case 'left':
-//           currentX = x + (i+1)*buffer;
-//           break;
-//       }
-//       let trainElm = this.flwrTrain[i];
-//       if (!trainElm) {
-//         // create a new train element if it doesn't exist yet
-//         let newTrainElm = document.createElement('div');
-//         newTrainElm.style.width = this.flwrDisplayWidth + 'px';
-//         newTrainElm.style.height = this.flwrDisplayHeight + 'px';
-//         newTrainElm.classList.add('flowerTrain');
-//         this.flwrTrain.push(newTrainElm);
-//         gameMap.append(newTrainElm);
-//         trainElm = newTrainElm;
-//       }
-//       trainElm.style.top = currentY + 'px';
-//       trainElm.style.left = currentX + 'px';
-//     }
-//   }
-// }
 class gameSprite extends gameAsset {
   constructor(objectType, elmId, posX, posY, width, height, currentDirection) {
     super(objectType, elmId, posX, posY, width, height, currentDirection);
@@ -713,104 +693,25 @@ class followerSprite extends gameSprite {
     // console.log(gameAsset.instances);
     // console.log(this.targetPlayer);
   }
-  // collectWorldItem(asset) { 
-  //   console.log("anything happening?")
-  //   console.log(asset);
-  //   console.log(`Picked up a ${asset.objectType}!`);
-
-  //   console.log(this.playerId, asset.elmId);
-
-  //   socket.emit('worldItemCollected', {asset: asset});
-  //   this.inventory.push(asset); // emit this? or have the server understand the inventory of each?
-  //   console.log(`${this.elmId} inventory: ${JSON.stringify(this.inventory.length)}`);
-  //   //gameAsset.delete(asset); // uh generate new flower?
-
-  //   //asset.removeElm(asset.elmId); /// emit 
-  //   //this.updateCurrencyCounter(); // need to emit this
-  // }
   static followTarget(follower, target) {
     follower.isTargetting = true;
-    console.log(`${follower.elmId} is going to follow ${target.elmId}`);
+    // console.log(`${follower.elmId} is going to follow ${target.elmId}`);
 
     let moveInterval = setInterval(() => {
       let finishedMoving = follower.move(target);
       if (finishedMoving) {
         clearInterval(moveInterval);
-        console.log(`reached destination, clear interval`);
+        // console.log(`reached destination, clear interval`);
       }
     }, 100);
   }
-  // move(target) {
-  //   // if(this.isColliding(this.posX, this.posY)) {
-  //   //   // console.log("trying my best");
-  //   // }
-
-  //   let dx = Math.abs(target.posX - this.posX);
-  //   let dy = Math.abs(target.posY - this.posY);
-  //   let distance = dx + dy;
-
-  //   // Check if follower is already at the target position
-  //   if (distance === 0) {
-  //     console.log(`${this.elmId} caught the thing`);
-  //     return true;
-  //   }
-  //   let direction = "";
-  //   if (dx > dy) {
-  //     direction = target.posX < this.posX ? "left" : "right";
-  //   } else {
-  //     direction = target.posY < this.posY ? "up" : "down";
-  //   }
-  //   if (direction === "left") {
-  //     this.currentDirection = "left";
-  //     this.posX -= this.velocity;
-  //   } else if (direction === "right") {
-  //     this.currentDirection = "left";
-  //     this.posX += this.velocity;
-  //   } else if (direction === "up") {
-  //     this.currentDirection = "up";
-  //     this.posY -= this.velocity;
-  //   } else if (direction === "down") {
-  //     this.currentDirection = "down";
-  //     this.posY += this.velocity;
-  //   }
-
-  //   // diagnol movement
-    
-
-  //   //eventManager.emit('updateClientPosition', { id: this.elmId, x: this.posX, y: this.posY });
-  //   // socket.emit('updateClientPosition', { id: this.elmId, x: this.posX, y: this.posY });
-
-  //   // Update follower element position
-  //   // this.updatePosition(this.posX, this.posY);
-
-  //   for (let asset of gameAsset.instances) {
-  //     if (asset !== this && asset.isCollectable) {
-  //       // console.log('collectable asset here!')
-  //       if (
-  //         this.colliderFoot.posX < asset.posX + asset.width &&
-  //         this.colliderFoot.posX + this.colliderFoot.width > asset.posX &&
-  //         this.colliderFoot.posY < asset.posY + asset.height &&
-  //         this.colliderFoot.posY + this.colliderFoot.height > asset.posY
-  //       ) {
-  //         // this.collectWorldItem(asset);
-  //         break;
-  //       }
-  //     }
-  //   }
-  //   // console.log(this.currentDirection);
-  //   eventManager.emit('updateClientPosition', { id: this.elmId, x: this.posX, y: this.posY, direction: this.currentDirection });
-
-  //   return false;
-  // }
-
-
   move(target) {
     const dx = target.posX - this.posX;
     const dy = target.posY - this.posY;
     const distance = Math.sqrt(dx * dx + dy * dy);
 
     if (distance === 0) {
-      console.log(`${this.elmId} caught the thing`);
+      // console.log(`${this.elmId} caught the thing`);
       return true;
     }
 
@@ -863,44 +764,21 @@ class mainPlayer extends gameSprite {
     super(objectType, elmId, posX, posY, width, height, currentDirection);
     //this.flwrTrain = new pathFinderSprite(this.elmId, this.posX, this.posY, this.width, this.height, this.currentDirection);
   //  console.log(this.colliderFoot);
-    console.log(this);
+    // console.log(this);
     this.flwrTrain = new pathFinderSprite(this);
     
     this.velocity = 5;
     this.inventory = [];
     // this.staticSprite;
   }
- collectWorldItem(asset) {
-      // if (this.isCollectable && this.isColliding(posX, posY)) {
-      // }
-    console.log(asset);
-    console.log(`Picked up a ${asset.objectType}!`);
-
-    // let trainElms = this.flwrTrain.getElementsByClassName('flowerTrain');
-    console.log(this.flwrTrain.flwrTrain); //need to change this array name
-    let trainElms = this.flwrTrain.flwrTrain;
-
-    let emptySlot = -1;
-    for (let i = 0; i < trainElms.length; i++) {
-      if (!trainElms[i].hasChildNodes()) {
-        emptySlot = i;
-        break;
-      }
-    }
-    if (emptySlot !== -1) {
-      let flwr = document.createElement('div');
-      trainElms[emptySlot].append(flwr);
-      trainElms[emptySlot].style.backgroundColor = 'yellow'; //im dumb
-
-      console.log(this.playerId, asset.elmId);
-
-      gameAsset.delete(asset);
-      asset.removeElm(asset.elmId);
-      socket.emit('worldItemCollected', {asset: asset});
-    } else {
-      console.log("no empty slot");
-    }
-  }
+//  collectWorldItem(asset) {
+//     this.inventory.push(asset);
+//     console.log(this.inventory.length);
+//     // asset.removeElm(asset.elmId); change to emit
+//     eventManager.emit('worldItemCollected', { id: this.elmId, asset: asset });
+//     gameAsset.delete(asset);
+//     // this.updateCurrencyCounter();
+//   }
   step() { // going insane 
     super.step(); 
     this.flwrTrain.moveTrain(); 
