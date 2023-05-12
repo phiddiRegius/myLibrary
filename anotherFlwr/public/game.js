@@ -49,6 +49,35 @@ currencyCounter.append(currencyDisplay);
 let startMenu = document.createElement('div');
   startMenu.setAttribute('id', 'startMenu');
 
+let numOfSlots = 5;
+
+let inventoryDeck = document.createElement('div');
+  inventoryDeck.setAttribute('id', 'inventoryDeck');
+  inventoryDeck.style.display = 'none';
+
+let slotContainer = document.createElement('div');
+slotContainer.setAttribute('id', 'slotContainer');
+
+
+let counterContainer = document.createElement('div');
+counterContainer.setAttribute('id', 'counterContainer');
+
+inventoryDeck.append(counterContainer, slotContainer);
+
+  for (let i = 0; i < numOfSlots; i++) {
+    let slot = document.createElement('div');
+      slot.setAttribute('class', 'slot');
+      slot.setAttribute('id', `slot${i + 1}`);
+
+    let slotCounter = document.createElement('div');
+      slotCounter.setAttribute('class', 'slotCounter');
+      slotCounter.setAttribute('id', `slotCounter${i + 1}`);
+      slotCounter.innerHTML = 0; 
+
+      counterContainer.append(slotCounter)
+      slotContainer.append(slot);
+  }
+
 let startDiv = document.createElement('div');
 startDiv.setAttribute('id', 'startDiv');
 
@@ -78,7 +107,7 @@ let startButton = document.createElement('button');
 let pickFlowerOption = document.querySelectorAll('.pickFlowerOption');
 
 
-  startMenu.append(startDiv, currencyCounter);
+  startMenu.append(startDiv, currencyCounter, inventoryDeck);
   startDiv.append(gameIntro, startDisplay, introInstruction, gifContainer);
 
 // let plantButton = document.createElement('button');
@@ -117,21 +146,26 @@ debugToggle.addEventListener('change', () => {
   }
 });
 
-// startMenu.append(startButton, debugToggle);
-// startMenu.append(startButton, debugToggle);
-
 let gameMap = document.createElement('div');
   gameMap.setAttribute('id', 'gameMap');
   gameMap.style.width = `${mapWidth}px`;
   gameMap.style.height = `${mapHeight}px`;
-
-
 
 // key stuff
 const leftKey = "ArrowLeft";
 const rightKey = "ArrowRight";
 const upKey = "ArrowUp";
 const downKey = "ArrowDown";
+
+let leftArrowDown = false;
+let rightArrowDown = false;
+let upArrowDown = false;
+let downArrowDown = false;
+
+let wDown = false;
+let aDown = false;
+let sDown = false;
+let dDown = false;
 
 // play game
 
@@ -142,17 +176,21 @@ window.onkeydown = function (e) {
 if(gameIsStarted === true) {
   switch (e.keyCode) {
     case 37: // left arrow
+    
       if (player.currentDirection === 'left') {
         //player.stepLeft();
         player.step(); 
+        leftArrowDown = true;
       } else {
         player.setFacingDirection('left');
       }
       break;
     case 38: // up arrow
+     
       if (player.currentDirection === 'up') {
         // player.stepUp();
         player.step();
+        upArrowDown = true;
       } else {
         player.setFacingDirection('up');
       }
@@ -161,6 +199,7 @@ if(gameIsStarted === true) {
       if (player.currentDirection === 'right') {
         // player.stepRight();
         player.step();
+        rightArrowDown = true;
       } else {
         player.setFacingDirection('right');
       }
@@ -171,6 +210,7 @@ if(gameIsStarted === true) {
         player.step();
       } else {
         player.setFacingDirection('down');
+        downArrowDown = true;
       }
       break;
 
@@ -178,15 +218,12 @@ if(gameIsStarted === true) {
       case 87: // w
       //player.setFacingDirection('up');
       player.presentFlower('up');
-      // for (let i = 0; i < gameAsset.instances.length; i++) {
-      //   if (gameAsset.instances[i] instanceof mainPlayer) {
-      //     gameAsset.instances[i].plantFlower();
-      //   }
-      // }
+      let wDown = true;
       break;
       case 65: // a
       //player.setFacingDirection('left');
       player.presentFlower('left');
+      let aDown = true;
       // for (let i = 0; i < gameAsset.instances.length; i++) {
       //   if (gameAsset.instances[i] instanceof mainPlayer) {
       //     gameAsset.instances[i].plantFlower();
@@ -195,6 +232,7 @@ if(gameIsStarted === true) {
       break;
       case 83: // s
       //player.setFacingDirection('down');
+      let sDown = true;
       player.presentFlower('down');
       // for (let i = 0; i < gameAsset.instances.length; i++) {
       //   if (gameAsset.instances[i] instanceof mainPlayer) {
@@ -205,6 +243,7 @@ if(gameIsStarted === true) {
       case 68: // d
       //player.setFacingDirection('right');
       player.presentFlower('right');
+      let dDown = true;
       // for (let i = 0; i < gameAsset.instances.length; i++) {
       //   if (gameAsset.instances[i] instanceof mainPlayer) {
       //     gameAsset.instances[i].plantFlower();
@@ -224,6 +263,7 @@ if(gameIsStarted === true) {
           // startButton.style.display = "none";
           currencyCounter.style.display = 'block';
           currencyDisplay.style.display = 'block';
+          inventoryDeck.style.display = 'block';
           startDiv.style.display = 'none';
           // startMenu.append(plantButton);
           playerGUI.style.display = "block";
@@ -234,6 +274,28 @@ if(gameIsStarted === true) {
     }
   };
 }
+
+window.onkeyup = function (e) {
+  let player = mainPlayerInstance;
+  switch(e.keyCode) {
+    case 37: // left arrow
+      leftArrowDown = false;
+      player.setFacingDirection('left');
+      break;
+    case 38: // up arrow
+      upArrowDown = false;
+      player.setFacingDirection('up');
+      break;
+    case 39: // right arrow
+      rightArrowDown = false;
+      player.setFacingDirection('right');
+      break;
+    case 40: // down arrow
+      downArrowDown = false;
+      player.setFacingDirection('down');
+      break;
+  }
+};
 
 let socket = io();
 mainContainer.append(playerGUI, startMenu, gameMap);
@@ -262,10 +324,83 @@ startButton.addEventListener('click', () => {
 });
 
 function backgroundAudio() {
-  let forestSound = new Audio('assets/sound/forest.mp3');
-  forestSound.play();
-  forestSound.loop = true;
+  let track = new Audio('assets/sound/backgroundTrack.mp3');
+  track.play();
+  track.loop = true;
 }
+
+document.addEventListener('click', (event) => {
+  // check if the clicked element has the "clickable" class
+  if (event.target.classList.contains('clickable')) {
+    // get the player and asset IDs from the data attributes
+    let player = event.target.dataset.player;
+    let asset = event.target.dataset.asset;
+    console.log(player, asset);
+    // emit the socket event
+    socket.emit('pickFlower', { player: player, asset: asset });
+
+    let pickFlowerOption = document.querySelector(`#pickFlowerOption-${asset}`);
+        pickFlowerOption.style.display = 'none';
+  }
+
+  if (event.target.classList.contains('draggable')  && event.target.dataset.hasCollected === 'true') {
+    console.log(event.target);
+  };
+});
+
+
+let draggedItem = null;
+
+document.addEventListener('mousedown', function(event) {
+  let player = mainPlayerInstance;
+  const target = event.target;
+  const slotType = target.dataset.slotType;
+
+  if (target.classList.contains('draggable') && target.dataset.hasCollected === 'true') {
+    draggedItem = player.inventory.find(item => item.color === slotType);
+    console.log(draggedItem.elm);
+    draggedItem.elm.style.cursor = "move";
+  
+    // draggedItem.style.cursor = "move";
+  }
+});
+
+document.addEventListener('mousemove', function(event) {
+  if (draggedItem) {
+    // Calculate the new position of the dragged item
+    // draggedItem.elm.style.left = event.pageX + 'px';
+    // draggedItem.elm.style.top = event.pageY + 'px';
+    const x = event.clientX - draggedItem.elm.offsetWidth / 2;
+    const y = event.clientY - draggedItem.elm.offsetHeight / 2;
+    draggedItem.elm.style.left = x + 'px';
+    draggedItem.elm.style.top = y + 'px';
+    document.body.appendChild(draggedItem.elm);
+  }
+});
+
+document.addEventListener('mouseup', function(event) {
+  let player = mainPlayerInstance;
+  if (draggedItem) {
+
+    const finalX = event.clientX - draggedItem.elm.offsetWidth / 2;
+    const finalY = event.clientY - draggedItem.elm.offsetHeight / 2;
+    console.log("Final position: " + finalX + ", " + finalY);
+
+    socket.emit('flowerPlanted', {asset: draggedItem});
+    draggedElm = draggedItem.elm;
+ 
+    draggedItem.elm.style.cursor = "";
+    draggedItem = null;
+
+    player.inventory.splice(player.inventory.indexOf(draggedItem), 1);
+    console.log(player.inventory.length);
+
+    player.updateInventory();
+    player.updateCurrencyCounter();
+  }
+});
+
+
 // gameAssets superclass => environment
 // worldObjects & gameSprites
 // worldObjects => things in environment
@@ -292,6 +427,7 @@ class gameAsset {
     this.playerId;
     this.zIndex;
     this.isVisible;
+    this.distanceFrom;
     // this.collidable = true;
     this.currentDirection = 'down';
     this.faceLeft = false;
@@ -322,86 +458,35 @@ class gameAsset {
   }
   isColliding(nextStepX, nextStepY) {
     
-    let distanceThreshold = 100;
+    let distanceThreshold = 200; 
     let addedEventListener = false;
-    
-
-    for (let i = 0; i < gameAsset.instances.length; i++) {
-      let asset = gameAsset.instances[i];
-
-      
-
-      if (asset !== this && asset.isCollectable && asset.state == 3) {
-        let distance = Math.sqrt(Math.pow(nextStepX - asset.posX, 2) + Math.pow(nextStepY - asset.posY, 2));
-        let pickFlowerOption = document.querySelector(`#pickFlowerOption-${asset.elmId}`);
-
-        const clickHandler = (event) => {
-          if(addedEventListener) {
-            pickFlowerOption.removeEventListener('click', clickHandler);
-            addedEventListener = false;
-          }
-          
-          // Send the asset ID along with the event
-          pickFlowerOption.style.display = 'none';
-          socket.emit('pickFlower', { player: this.playerId, asset: asset.elmId});
-        };
-
-        if (distance < distanceThreshold) {
-          if(!addedEventListener) {
-            pickFlowerOption.addEventListener('click', clickHandler);
-            addedEventListener = true;
-          }
-          
-          pickFlowerOption.style.display = 'block';
-          // pickFlowerOption.addEventListener('click', (event) => {
-          //   // Send the asset ID along with the event
-          //   socket.emit('pickFlower', { player: this.playerId, asset: asset.elmId});
-          // });
-        } else {
-          if(addedEventListener) {
-            pickFlowerOption.removeEventListener('click', clickHandler);
-            addedEventListener = false;
-          }
-          pickFlowerOption.style.display = 'none';
-          // pickFlowerOption.removeEventListener('click');
-          
-        }
-      }
-    }
 
     let nearbyObjects = gameAsset.instances.filter(asset => {
       let distance = Math.sqrt(Math.pow(nextStepX - asset.posX, 2) + Math.pow(nextStepY - asset.posY, 2));
       return distance < distanceThreshold; // only return objects within the threshold
     });
 
-    // console.log(nearbyObjects)
+    for (let i = 0; i < nearbyObjects.length; i++) {
+      let asset = nearbyObjects[i];
+      if (asset !== this && asset.isCollectable && asset.state == 3) {
+        let distance = Math.sqrt(Math.pow(nextStepX - asset.posX, 2) + Math.pow(nextStepY - asset.posY, 2));
+        let pickFlowerOption = document.querySelector(`#pickFlowerOption-${asset.elmId}`);
+          let distanceThreshold = 150;
+          if (distance < distanceThreshold) {
+            pickFlowerOption.style.display = 'block';
+              pickFlowerOption.classList.add('clickable');
+              pickFlowerOption.dataset.player = this.playerId;
+              pickFlowerOption.dataset.asset = asset.elmId;
+             
+          } else {
+            pickFlowerOption.style.display = 'none';
+          }
+      }
 
+    }
       if (nextStepX >= 0 && nextStepX < mapWidth - this.width && nextStepY >= 0 && nextStepY < mapHeight - this.height) {
         for (let i = 0; i < nearbyObjects.length; i++) {
           let asset = nearbyObjects[i];
-          
-          
-          // if (asset !== this && asset.isCollectable && asset.state == 3) {
-          //   // let assetFootX = asset.posX + asset.colliderFoot.offsetLeft;
-          //   // let assetFootY = asset.posY + asset.colliderFoot.offsetTop;
-          //   // let playerFootX = nextStepX + this.colliderFoot.offsetLeft;
-          //   // let playerFootY = nextStepY + this.colliderFoot.offsetTop;
-          //   // if (playerFootX + this.colliderFoot.offsetWidth > asset.posX && playerFootX < asset.posX + asset.width &&
-          //   //     playerFootY + this.colliderFoot.offsetHeight > asset.posY && playerFootY < asset.posY + asset.height) {
-          //     let distance = Math.sqrt(Math.pow(nextStepX - asset.posX, 2) + Math.pow(nextStepY - asset.posY, 2));
-          //     if (distance < distanceThreshold) {
-          //       let pickFlowerOption = document.querySelector(`#pickFlowerOption-${asset.elmId}`);
-          //       pickFlowerOption.style.display = 'block';
-          //     } else {
-          //       let pickFlowerOption = document.querySelector(`#pickFlowerOption-${asset.elmId}`);
-          //       pickFlowerOption.style.display = 'none';
-          //     }
-          //       // this.collectWorldItem(asset);
-          //       // console.log('am I checking?')
-          //       // console.log('collecting asset')
-          //   //     return false;
-          //   // }
-          // }
 
           if (asset !== this && asset.collidable) {
             let assetFootX = asset.posX + asset.colliderFoot.offsetLeft;
@@ -419,112 +504,6 @@ class gameAsset {
     } else {
       // player outside map bounds
       return true;
-    }
-
-
-    // Check if the player is WITHIN the bounds of the game map
-    // if (nextStepX >= 0 && nextStepX < mapWidth - this.width && nextStepY >= 0 && nextStepY < mapHeight - this.height) {
-    //   // Check for collisions with all assets
-    //   for (let i = 0; i < gameAsset.instances.length; i++) { //loop
-    //     let asset = gameAsset.instances[i]; 
-    //     // if (asset !== this && asset.collidable) { // not me and is collidable
-    //     //   if ((nextStepX + this.colliderFoot.offsetWidth > asset.posX && nextStepX < asset.posX + asset.width) && 
-    //     //       (nextStepY + this.colliderFoot.offsetHeight > asset.posY && nextStepY < asset.posY + asset.height)) {
-    //     //     return true; // colliding 
-    //     //   }
-    //     // }
-    //     //   let assetToe = asset.posY + asset.height;
-    //     //   let playerToe = nextStepY + this.colliderFoot.offsetHeight;
-    //     //   if (nextStepX + this.colliderFoot.offsetWidth > asset.posX && nextStepX < asset.posX + asset.width &&
-    //     //     playerToe > asset.posY && nextStepY < assetToe) {
-    //     //     return true; // colliding
-    //     //   }
-
-    //     if (asset !== this && asset.isCollectable && asset.state == 3) {
-    //       // let assetFootX = asset.posX + asset.colliderFoot.offsetLeft;
-    //       // let assetFootY = asset.posY + asset.colliderFoot.offsetTop;
-    //       let playerFootX = nextStepX + this.colliderFoot.offsetLeft;
-    //       let playerFootY = nextStepY + this.colliderFoot.offsetTop;
-    //       if (playerFootX + this.colliderFoot.offsetWidth > asset.posX && playerFootX < asset.posX + asset.width &&
-    //           playerFootY + this.colliderFoot.offsetHeight > asset.posY && playerFootY < asset.posY + asset.height) {
-    //           // this.collectWorldItem(asset);
-              
-    //           // console.log('collecting asset')
-    //           return false;
-    //       }
-    //     }
-
-    //     if (asset !== this && asset.collidable) {
-    //       let assetFootX = asset.posX + asset.colliderFoot.offsetLeft;
-    //       let assetFootY = asset.posY + asset.colliderFoot.offsetTop;
-    //       let playerFootX = nextStepX + this.colliderFoot.offsetLeft;
-    //       let playerFootY = nextStepY + this.colliderFoot.offsetTop;
-    //       if (playerFootX + this.colliderFoot.offsetWidth > assetFootX && playerFootX < assetFootX + asset.colliderFoot.offsetWidth &&
-    //           playerFootY + this.colliderFoot.offsetHeight > assetFootY && playerFootY < assetFootY + asset.colliderFoot.offsetHeight) {
-    //         return true; // colliding
-    //       }
-    //     }
-        
-    //   }
-    //   return false; // !isColliding
-    // } else {
-    //   // player outside map bounds
-    //   return true;
-    // }
-  }
-  checkAround(posX, posY) {
-    for (let i = 0; i < gameAsset.instances.length; i++) { //loop
-      let asset = gameAsset.instances[i]; 
-
-      // }
-        // if (asset !== this && asset.isCollectable && asset.state === 3) {
-        if ( asset !== this ) { // this being me
-          console.log('checking');
-          let playerFootX = posX + this.colliderFoot.offsetLeft;
-          let playerFootY = posY + this.colliderFoot.offsetTop;
-          let distanceThreshold = 50; // expand the area
-
-          if (playerFootX + this.colliderFoot.offsetWidth + distanceThreshold > asset.posX && playerFootX + distanceThreshold < asset.posX + asset.width &&
-              playerFootY + this.colliderFoot.offsetHeight + distanceThreshold > asset.posY && playerFootY + distanceThreshold < asset.posY + asset.height) {
-              // if(asset.objectType === 'flower' && asset.state == 3) {
-              //     console.log("You are near a pickable flower.");
-              //     this.displayOption('pickFlower', asset);
-              //     return;
-              //   }
-
-                switch (asset.objectType) {
-                case 'flower':
-                  // console.log('a flower is in range')
-                  // console.log(asset.state);
-                  if(asset.state == 3) {
-                    this.displayOption('pickFlower', asset);
-                  }
-                    
-                  break;
-                  default:
-                    break;
-              }
-              
-          }
-        }
-    }
-  }
-  displayOption(type, asset) {
-    switch (type) {
-      case 'pickFlower':
-        // console.log(asset);
-        // console.log('displaying option')
-        // let pickFlowerOption = document.createElement("div");
-        //   pickFlowerOption.classList.add("pickFlowerOption");
-        //     pickFlowerOption.style.left = `${asset.posX + asset.width/2}px`;
-        //     pickFlowerOption.style.top = `${asset.posY - 20}px`;
-        let pickFlowerOption = document.querySelectorAll('.pickFlowerOption')
-        pickFlowerOption.style.display = 'block';
-        // gameMap.append(pickFlowerOption)
-
-      break;
-      default:
-        break;
     }
   }
   createElement() {
@@ -563,22 +542,11 @@ class gameAsset {
     if(debug) {
       elm.innerHTML = `<p class="debugTag">${this.playerId}</p>`;
     }
-
-    // this.canvas = document.createElement('canvas');
-    // this.canvas.style.width = this.width;
-    // this.canvas.style.height = this.height;
-    // this.canvas.style.position = 'absolute';
-    // this.canvas.style.top = '0';
-    // this.canvas.style.left = '0';
-
-    // this.ctx = this.canvas.getContext('2d');
-    // elm.append(this.canvas);
   } else {
     if(debug) {
       elm.innerHTML = `<p class="debugTag">${this.elmId}</p>`;
     }
   }
-
   // this.updatePosition();
   gameMap.append(elm);
   elm.append(this.colliderFoot);
@@ -667,11 +635,6 @@ class worldItem extends worldObject {
         break;
     }
   }
-  // static collectWorldItem() {
-  //   if (this.isCollectable && this.isColliding(posX, posY)) {
-  //     console.log(`Picked up ${this.objectType}!`);
-  //   }
-  // }
 }
 class gameSprite extends gameAsset {
   constructor(objectType, elmId, posX, posY, width, height, currentDirection) {
@@ -682,9 +645,7 @@ class gameSprite extends gameAsset {
   }
   updateServerPosition() {
     // console.log('updateServerPosition: ', this.playerId, this.posx, this.posY, this.currentDirection);
-    // this.updateFlowerTrainPosition() 
     socket.emit('playerMovement', { playerId: this.playerId, x: this.posX, y: this.posY, currentDirection: this.currentDirection });
-    // pathFinderSprite.moveTrain();
   }
   setFacingDirection(direction) {
     this.faceLeft = direction === 'left';
@@ -736,12 +697,9 @@ class followerSprite extends gameSprite {
     super(objectType, elmId, posX, posY, width, height, currentDirection);
     this.currentDirection;
     this.velocity = 1;
-    this.collidable = false; // I just dont want the headache right now
+    this.collidable = false; 
     this.isTargetting = false;
     this.inventory;
-
-    // console.log(gameAsset.instances);
-    // console.log(this.targetPlayer);
   }
   static followTarget(follower, target) {
     follower.isTargetting = true;
@@ -755,23 +713,6 @@ class followerSprite extends gameSprite {
       }
     }, 100);
   }
-  // collectWorldItem(asset) {
-  //   let exclSound = new Audio('assets/sound/exclamation.mp3');
-  //       exclSound.play();
-        
-  //   console.log(asset);
-  //   console.log(`Picked up a ${asset.objectType}!`);
-
-  //   console.log(this.playerId, asset.elmId);
-
-  //   socket.emit('worldItemCollected', {asset: asset});
-  //   this.inventory.push(asset);
-  //   console.log(`${this.playerId} inventory: ${JSON.stringify(this.inventory.length)}`);
-  //   gameAsset.delete(asset);
-
-  //   asset.removeElm(asset.elmId);
-  //   this.updateCurrencyCounter();
-  // }
 move(target) {
   const dx = target.posX - this.posX;
   const dy = target.posY - this.posY;
@@ -814,49 +755,124 @@ move(target) {
     return true;
   }
 }
-
-
 }
 class mainPlayer extends gameSprite {
   constructor(objectType, elmId, posX, posY, width, height, currentDirection) {
     super(objectType, elmId, posX, posY, width, height, currentDirection);
     this.currencyDisplay = document.getElementById('currencyDisplay');
     
-    this.velocity = 5;
+    this.canMove = true;
+    if(this.canMove) {
+      this.velocity = 5;
+    } else {
+      this.velocity = 0;
+    }
+    
     this.inventory = [];
+    this.isNear = [];
     //
+  }
+  playPickUpAnimation() {
+    this.canMove = false;
+    switch (this.currentDirection) {
+      case 'left': 
+          this.elm.style.backgroundImage = `url(assets/player/pick/${this.currentDirection}.gif)`;
+          break;
+      case 'right':
+          this.elm.style.backgroundImage = `url(assets/player/pick/${this.currentDirection}.gif)`;
+          break;
+      case 'up': 
+          this.elm.style.backgroundImage = `url(assets/player/pick/${this.currentDirection}.gif)`;
+          break;
+        case 'down': 
+          this.elm.style.backgroundImage = `url(assets/player/pick/${this.currentDirection}.gif)`;
+          break;
+    }
+    this.canMove = true;
   }
   updateCurrencyCounter() {
     let count = this.inventory.length.toString().padStart(2, '0');
     this.currencyDisplay.innerHTML = count; 
   }
-  // plantFlower() {
-  //   if (this.inventory.length > 0) {
+  updateInventory() {
+    const slots = {
+      white: {
+        slotType: 'white',
+        slot: document.getElementById('slot1'),
+        counter: document.getElementById('slotCounter1'),
+        hasCollected: false,
+      },
+      red: {
+        slotType: 'red',
+        slot: document.getElementById('slot2'),
+        counter: document.getElementById('slotCounter2'),
+        hasCollected: false,
+      },
+      orange: {
+        slotType: 'orange',
+        slot: document.getElementById('slot3'),
+        counter: document.getElementById('slotCounter3'),
+        hasCollected: false,
+      },
+      yellow: {
+        slotType: 'yellow',
+        slot: document.getElementById('slot4'),
+        counter: document.getElementById('slotCounter4'),
+        hasCollected: false,
+      },
+      blue: {
+        slotType: 'blue',
+        slot: document.getElementById('slot5'),
+        counter: document.getElementById('slotCounter5'),
+        hasCollected: false,
+      }
+    };
 
-  //     // remove from inventory
-  //     let flowerToPlant = this.inventory.pop();
+    let counts = {
+      white: 0,
+      red: 0,
+      orange: 0,
+      yellow: 0,
+      blue: 0,
+    };
+
+    this.inventory.forEach(flower => {
+    counts[flower.color] += 1;
+  });
+
+    Object.entries(counts).forEach(([color, count]) => {
+      const slot = slots[color].slot;
+      const counter = slots[color].counter;
       
-  //     // where to plant
-  //     flowerToPlant.posX = this.posX + this.width/2;
-  //     flowerToPlant.posY = this.posY + this.height - 10;
-  //     flowerToPlant.elm.style.left = flowerToPlant.posX + 'px';
-  //     flowerToPlant.elm.style.top = flowerToPlant.posY + 'px';
+      if (counter) {
+        counter.textContent = count;
 
-  //     // flowerToPlant.elm.style.backgroundColor = 'pink';
-
-  //     flowerToPlant.collidable = true; // I dont think this is working
-
-  //     gameAsset.instances.push(flowerToPlant); 
-
-  //     gameMap.append(flowerToPlant.elm) // append to the map
-  //     // console.log(flowerToPlant);
-  //     this.updateCurrencyCounter(); // remove the flower from the counter
-
-  //     socket.emit('planted', {flower: flowerToPlant}); // emitting the data about the planted flower
-  //   } else {
-  //     console.log('no flowers in inventory')
-  //   }
-  // }
+        if (count > 0) {
+          counter.style.border = '1px solid rgb(209, 175, 111)';
+          counter.style.backgroundColor = 'rgb(222, 187, 123)';
+          
+          if (slot) {
+            slot.style.backgroundImage = `url(assets/gui/${color}.png)`;
+            slot.classList.add('draggable');
+            slot.hasCollected = true;
+            slot.dataset.hasCollected = true;
+            slot.dataset.slotType = slots[color].slotType;
+          }
+        } else {
+          counter.style.border = '1px solid rgb(187, 197, 193)';
+          counter.style.backgroundColor = 'rgb(142, 142, 142)';
+          
+          if (slot) {
+            slot.style.backgroundImage = '';
+            slot.classList.remove('draggable');
+            slot.hasCollected = false;
+            slot.dataset.hasCollected = false;
+            slot.dataset.slotType = slots[color].slotType;
+          }
+        }
+      }
+    });
+  }
   plantFlower() {
     if (this.inventory.length > 0) {
         let flowerToPlant = this.inventory.pop(); 
@@ -959,31 +975,43 @@ class mainPlayer extends gameSprite {
     this.colliderFoot.style.height = `${this.height * 0.2}px`;
     this.colliderFoot.style.bottom = `${5}px`;
 
-    switch (this.currentDirection) {
-      case 'left': // sprout state
-        // console.log(this.state, this.color);
-          //this.elm.style.backgroundImage = `url(assets/player/${this.currentDirection}/${this.currentDirection}.gif)`;
-          this.elm.style.backgroundImage = `url(assets/hand/L/1.png)`;
-          break;
-      case 'right':
-          //this.elm.style.backgroundImage = `url(assets/player/${this.currentDirection}/${this.currentDirection}.gif)`;
-          this.elm.style.backgroundImage = `url(assets/hand/R/1.png)`;
-          break;
-      case 'up': 
-          //this.elm.style.backgroundImage = `url(assets/player/${this.currentDirection}/${this.currentDirection}.gif)`;
-          this.elm.style.backgroundImage = `url(assets/hand/U/1.png)`;
-          break;
-        case 'down': 
-          //this.elm.style.backgroundImage = `url(assets/player/${this.currentDirection}/${this.currentDirection}.gif)`;
-          this.elm.style.backgroundImage = `url(assets/hand/D/1.png)`;
-          break;
+    if (leftArrowDown) {
+      this.elm.style.backgroundImage = `url(assets/hand/L/${this.currentDirection}.gif)`;
+    } else if (rightArrowDown) {
+      this.elm.style.backgroundImage = `url(assets/hand/R/${this.currentDirection}.gif)`;
+    } else if (upArrowDown) {
+      this.elm.style.backgroundImage = `url(assets/hand/U/${this.currentDirection}.gif)`;
+    } else if (downArrowDown) {
+      this.elm.style.backgroundImage = `url(assets/hand/D/${this.currentDirection}.gif)`;
+    } else if(wDown) {
+      this.elm.style.backgroundImage = `url(assets/hand/U/5.png)`;
+    } else if(aDown) {
+      this.elm.style.backgroundImage = `url(assets/hand/L/5.png)`;
+    } else if(sDown) {
+      this.elm.style.backgroundImage = `url(assets/hand/D/5.png)`;
+    } else if(dDown) {
+      this.elm.style.backgroundImage = `url(assets/hand/R/5.png)`;
+    } else {
+      switch (this.currentDirection) {
+        case 'left': // sprout state
+            this.elm.style.backgroundImage = `url(assets/hand/L/1.png)`;
+            break;
+        case 'right':
+            this.elm.style.backgroundImage = `url(assets/hand/R/1.png)`;
+            break;
+        case 'up': 
+            this.elm.style.backgroundImage = `url(assets/hand/U/1.png)`;
+            break;
+          case 'down': 
+            this.elm.style.backgroundImage = `url(assets/hand/D/1.png)`;
+            break;
+      }
     }
   }
 }
 class guestPlayer extends mainPlayer {
   constructor(objectType, elmId, posX, posY, width, height, currentDirection) {
     super(objectType, elmId, posX, posY, width, height, currentDirection);
-    // this.flwrTrain = new pathFinderSprite(elmId, posX, posY, width, height);
   }
 }
 // console.log(gameAsset.instances);
@@ -1094,6 +1122,7 @@ socket.on('gameObjects', function (objectInfo) {
     assignedSprite.collidable = false;
   });
   socket.on('playerMoved', function (playerInfo) {
+    // console.log(playerInfo);
         //console.log(playerInfo.posX, playerInfo.posY, playerInfo.currentDirection);
     let movedPlayer = activePlayers.find(player => player.playerId === playerInfo.playerId);
         // console.log("before updating movement: ", movedPlayer.posX, movedPlayer.posY);
@@ -1140,7 +1169,6 @@ socket.on('gameObjects', function (objectInfo) {
   });
   socket.on('updateClientPosition', function (movementData) {
     // console.log(movementData);
-
     for (let i = 0; i < gameAsset.instances.length; i++) {
       if (gameAsset.instances[i].elmId === movementData.id) {
         // console.log(gameAsset.instances[i])
@@ -1153,19 +1181,26 @@ socket.on('gameObjects', function (objectInfo) {
 
         // console.log(gameAsset.instances[i].currentDirection);
         // in the case of gameAsset.instances[i].objectType = 'enemySprite'
-        if (gameAsset.instances[i].currentDirection === "left") {
-          gameAsset.instances[i].elm.style.backgroundImage = 'url(assets/slug/nud01_left.png)';
-        } else if (gameAsset.instances[i].currentDirection === "right") {
-          gameAsset.instances[i].elm.style.backgroundImage = 'url(assets/slug/nud01_right.png)';
-        } else if (gameAsset.instances[i].currentDirection === "up") {
-          gameAsset.instances[i].elm.style.backgroundImage = 'url(assets/slug/nud01_back.png)';
-        } else if (gameAsset.instances[i].currentDirection === "down") {
-          gameAsset.instances[i].elm.style.backgroundImage = 'url(assets/slug/nud01_front.png)';
-        }
+        // if (gameAsset.instances[i].currentDirection === "left") {
+        //   gameAsset.instances[i].elm.style.backgroundImage = 'url(assets/slug/nud01_left.png)';
+        // } else if (gameAsset.instances[i].currentDirection === "right") {
+        //   gameAsset.instances[i].elm.style.backgroundImage = 'url(assets/slug/nud01_right.png)';
+        // } else if (gameAsset.instances[i].currentDirection === "up") {
+        //   gameAsset.instances[i].elm.style.backgroundImage = 'url(assets/slug/nud01_back.png)';
+        // } else if (gameAsset.instances[i].currentDirection === "down") {
+        //   gameAsset.instances[i].elm.style.backgroundImage = 'url(assets/slug/nud01_front.png)';
+        // }
 
       //  console.log(gameAsset.instances[i]);
         gameAsset.instances[i].updatePosition();
+        
         break; // Exit loop once instance is found and updated
+      } else if (gameAsset.instances[i].playerId === movementData.id) {
+          gameAsset.instances[i].posX = movementData.x;
+          gameAsset.instances[i].posY = movementData.y;
+          gameAsset.instances[i].currentDirection = movementData.direction;
+          gameAsset.instances[i].updatePosition();
+        break;
       }
     }
 
@@ -1173,54 +1208,32 @@ socket.on('gameObjects', function (objectInfo) {
   socket.on('plantedItem', function (itemData) { 
     console.log(itemData);
 
-    // let newElm = document.createElement('div'); // creating a new div
-      //  newElm.setAttribute('id', itemData.elmId);
-
-      let newElm = document.createElement('div');
-      // newElm.id = itemData.flower.elmId;
-      // newElm.style.cssText = `position: absolute; left: ${itemData.flower.posX}px; top: ${itemData.flower.posY}px; width: ${itemData.flower.width}px; height: ${itemData.flower.height}px;`;
-
-      newElm.id = itemData.flower.elmId;
-      newElm.style.position = 'absolute';
-      newElm.style.left = itemData.flower.posX + 'px';
-      newElm.style.top = itemData.flower.posY + 'px';
-      newElm.style.width = itemData.flower.width + 'px';
-      newElm.style.height = itemData.flower.height + 'px';
-      newElm.style.backgroundColor = 'pink';
-
-      
-      // let objectType = itemData.flower.objectType;
-      // let elmId = itemData.flower.elmId;
-      // let posX = itemData.flower.posX;
-      // let posY = itemData.flower.posY;
-      // let width = itemData.flower.width;
-      // let height = itemData.flower.height;
-      // let state = itemData.flower.state;
-      // let color = itemData.flower.color;
-
-        // let flower = new worldItem(objectType, elmId, posX, posY, width, height, state, color);
-        
-        // flower.isCollectable = false;
-        // flower.collidable = true;
-        let flower = new worldItem(itemData.flower);
-        flower.itemState();
-
-        console.log(flower instanceof gameAsset)
-        gameAsset.instances.push(flower);
-
-    // itemData.flower.isCollectable = false;
-    // itemData.flower.collidable = true;
-
-    
-    // console.log(itemData.elm);
-    gameMap.append(newElm);
-
-    console.log(newElm);
+    gameMap.append(itemData.elm)
 
   });
-  socket.on('pickedFlower', function (itemData) { 
+  socket.on('pickedFlower', function (data) { 
     console.log('picking flower');
+    let player = gameAsset.instances.find(asset => asset.playerId === data.player.playerId);
+    let pickedFlower = gameAsset.instances.find(asset => asset.elmId=== data.flower.elmId);
 
+    console.log(player);
+
+    if(pickedFlower === 'undefined') {
+
+    } else {
+      console.log(player, pickedFlower)
+
+      
+      player.inventory.push(pickedFlower);
+      player.updateCurrencyCounter();
+      player.updateInventory();
+
+      let removeFlower = document.getElementById(pickedFlower.elmId);
+        removeFlower.remove(gameMap);
+        gameAsset.delete(pickedFlower)
+
+        player.playPickUpAnimation();
+    }
   });
   socket.on('disconnectUser', function (playerId) {
     let playerIndex = activePlayers.findIndex(player => player.playerId === playerId);

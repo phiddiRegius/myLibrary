@@ -34,6 +34,7 @@ let mapWidth = 800;
 let mapHeight = 800;
 let minDist = 20;
 
+let movedToFlower = false;
  /**
  * numOfGameAssets => javaScript 'touples' that pairs an objectType with the quantity of objects to be generated
  */
@@ -58,7 +59,7 @@ const commonColors = [
 
 let numOfGameAssets = [
   ['staticSprite', 14], 
-  ['enemySprite', 7],
+  // ['enemySprite', 7],
   ['flower', 30, [10, 10, 10]],
 ];
 
@@ -165,14 +166,14 @@ io.on('connection', function (socket) {
           socket.emit('gameObjects', objectsToEmit);
           objectsToEmit.length = 0;
           break;
-        case 'enemySprite':
-          for (let i = 0; i < numOfInstances; i++) {
-            let slug = new followerSprite(`enemySprite`, `slug${i+1}`, coordinate[i][0], coordinate[i][1], 64, 64);
-            objectsToEmit.push(slug);
-          }
-          socket.emit('gameObjects', objectsToEmit);
-          objectsToEmit.length = 0;
-          break;
+        // case 'enemySprite':
+        //   for (let i = 0; i < numOfInstances; i++) {
+        //     let slug = new followerSprite(`enemySprite`, `slug${i+1}`, coordinate[i][0], coordinate[i][1], 64, 64);
+        //     objectsToEmit.push(slug);
+        //   }
+        //   socket.emit('gameObjects', objectsToEmit);
+        //   objectsToEmit.length = 0;
+        //   break;
         // case 'flower':
         //   for (let i = 0; i < numOfInstances; i++) {
         //     let flower = new worldItem(`flower`, `flwr${i+1}`, coordinate[i][0], coordinate[i][1], 10, 10, what state?);
@@ -282,44 +283,6 @@ io.on('connection', function (socket) {
     socket.emit('currentPlayers', players);
     socket.broadcast.emit('newPlayer', players[playerId]);
   })
-  // socket.on('updateGameAssets', function (assets) {
-  //   // console.log(`Receiving ${JSON.stringify(assets)}`);
-  //   let parsedAssets = JSON.parse(assets);
-  //     gameAsset.instances.push(...parsedAssets);
-  //     console.log(gameAsset.instances); 
-  // });
-
-  // socket.on('playerMovement', function (movementData) {
-  //   // console.log('playerMovement: ', movementData);
-  //   if (players[movementData.playerId]) {
-
-  //    ?
-  //       players[movementData.playerId].posX = movementData.x;
-  //       players[movementData.playerId].posY = movementData.y;
-  //       players[movementData.playerId].currentDirection = movementData.currentDirection;
-
-  //       // console.log(players[movementData.playerId]);
-  //       socket.broadcast.emit('playerMoved', players[movementData.playerId]);
-  //     // }
-  //   } else {
-  //     console.log(`Error: ${movementData.playerId} is not a players object`);
-  //   }
-  // });
-
-  // socket.on('playerMovement', function (movementData) {
-  //   // console.log('playerMovement: ', movementData);
-  //   if (players[movementData.playerId]) {
-  //       players[movementData.playerId].posX = movementData.x;
-  //       players[movementData.playerId].posY = movementData.y;
-  //       players[movementData.playerId].currentDirection = movementData.currentDirection;
-
-  //       // console.log(players[movementData.playerId]);
-  //       socket.broadcast.emit('playerMoved', players[movementData.playerId]);
-  //     // }
-  //   } else {
-  //     console.log(`Error: ${movementData.playerId} is not a players object`);
-  //   }
-  // });
 
   socket.on('playerMovement', function (movementData) {
     if (players[movementData.playerId]) {
@@ -342,22 +305,26 @@ io.on('connection', function (socket) {
     }
   });
 
-  // socket.on('worldItemCollected', function (itemData) { //NEED TO ADD PROPERTY FOR IF ISCOLLECTED 
-  //   // console.log('collectedItem: ', itemData);
-  //     io.emit('updateWorldItem', itemData);
-  //     // console.log(itemData.elmId);
-
-  //     // let flower = new worldItem(`flower`, `flwr${itemData.elmId}`, coordinate[i][0], coordinate[i][1], 10, 10);
-            
-  // });
-
-socket.on('planted', function (itemData) { 
-  // console.log('plantedItem: ', itemData);
-    io.emit('plantedItem', itemData); // telling all clients that the flower is being planted  
+socket.on('flowerPlanted', function (itemData) { 
+  
+    io.emit('plantedItem', itemData); 
 });
 
 socket.on('pickFlower', function (data) { 
- console.log(data);
+  // let pickedFlower = data.asset
+  console.log(data);
+  if (players[data.player]) {
+    // let player = players[movementData.playerId];
+    console.log('checking player:', data.player)
+    let player = gameAsset.instances.find(asset => asset.playerId === data.player);
+    let pickedFlower = gameAsset.instances.find(asset => asset.elmId=== data.asset);
+    if(pickedFlower === 'undefined') {
+
+    } else {
+      staticSpriteObject.moveToFlower(player, pickedFlower);
+        
+    }
+  }
 });
 
   socket.on('disconnect', function () {
@@ -373,13 +340,13 @@ socket.on('pickFlower', function (data) {
 
       let index = gameAsset.instances.findIndex(assignedSprite => assignedSprite.playerId === playerId);
         if (index !== -1) {
-          console.log(`Getting ${JSON.stringify(gameAsset.instances[index])} on disconnect`);
+         //console.log(`Getting ${JSON.stringify(gameAsset.instances[index])} on disconnect`);
 
           gameAsset.instances[index].posX = players[playerId].posX;
           gameAsset.instances[index].posY = players[playerId].posY;
           gameAsset.instances[index].playerId = 'pot';
           gameAsset.instances[index].isStatic = true;
-        console.log(`Checking updated values for: ${JSON.stringify(gameAsset.instances[index])} on disconnect`);
+        //console.log(`Checking updated values for: ${JSON.stringify(gameAsset.instances[index])} on disconnect`);
 
         // io.emit('updateSprites', sprites);
         delete players[playerId];
@@ -414,7 +381,7 @@ socket.on('pickFlower', function (data) {
 
 // 3000 for local
 // port for glitch process.env.PORT
-server.listen(3000, () => {
+server.listen(process.env.PORT, () => {
   console.log('listening on *:3000');
 });
 
@@ -493,7 +460,7 @@ class gameAsset {
       for (let i = 0; i < gameAsset.instances.length; i++) { //loop
         let asset = gameAsset.instances[i]; 
 
-        console.log(asset);
+        // console.log(asset);
 
         if (asset !== this && asset.collidable) {
           let assetFootX = asset.posX + asset.colliderFoot.offsetLeft;
@@ -623,6 +590,96 @@ class staticSpriteObject extends interactiveObject {
   constructor(objectType, elmId, posX, posY, width, height) {
     super(objectType, elmId, posX, posY, width, height);
     this.isStatic = true;
+    this.velocity = 5;
+  }
+  // static moveToFlower(follower, target) {
+  //   follower.isTargetting = true;
+  //   // console.log(`${follower.elmId} is going to follow ${target.elmId}`);
+  //   let player = gameAsset.instances.find(asset => asset.playerId === follower.playerId);
+  //   // console.log(player.posX, player.posY)
+  //   // console.log(player instanceof staticSpriteObject);
+  //   let moveInterval = setInterval(() => {
+  //     let finishedMoving = player.moveTo(follower, target);
+  //     if (finishedMoving) {
+  //       clearInterval(moveInterval);
+  //       // console.log(`reached destination, clear interval`);
+  //     }
+  //   }, 100);
+  // }
+  static moveToFlower(follower, target) {
+    follower.isTargetting = true;
+    // console.log(`${follower.elmId} is going to follow ${target.elmId}`);
+    let player = gameAsset.instances.find(asset => asset.playerId === follower.playerId);
+    // console.log(player.posX, player.posY)
+    // console.log(player instanceof staticSpriteObject);
+    let moveInterval = setInterval(() => {
+      let finishedMoving = player.moveTo(follower, target);
+      if (finishedMoving) {
+        clearInterval(moveInterval);
+        // console.log(`reached destination, clear interval`);
+      }
+    }, 100);
+  }
+  moveTo(follower, target) {
+    // console.log(target.posX, target.posY);
+    // console.log(this.posX, this.posY);
+    // console.log(follower.currentDirection);
+
+    const followerWidth = follower.width;
+    const followerHeight = follower.height;
+    const targetWidth = target.width;
+    const targetHeight = target.height;
+
+    const dx = target.posX + (targetWidth/2) - (follower.posX + (followerWidth/2));
+    const dy = target.posY + targetHeight - follower.posY - 50;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    // const dx = target.posX - follower.posX;
+    // const dy = target.posY - follower.posY;
+    // const distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (distance < 5) {
+      // console.log('is done');
+      io.emit('pickedFlower', {player: follower, flower: target});
+      // gameAsset.delete(target);
+      // console.log(`${this.elmId} caught the thing`);
+      return true;
+    }
+
+    let angle = Math.atan2(dy, dx) * 180 / Math.PI;
+    // let direction = "";
+
+    // if (angle >= -22.5 && angle <= 22.5) {
+    //   direction = "right";
+    // } else if (angle > 22.5 && angle <= 67.5) {
+    //   direction = "right";
+    // } else if (angle > 67.5 && angle <= 112.5) {
+    //   direction = "down";
+    // } else if (angle > 112.5 && angle <= 157.5) {
+    //   direction = "down";
+    // } else if (angle > 157.5 || angle <= -157.5) {
+    //   direction = "left";
+    // } else if (angle > -157.5 && angle <= -112.5) {
+    //   direction = "left";
+    // } else if (angle > -112.5 && angle <= -67.5) {
+    //   direction = "up";
+    // } else if (angle > -67.5 && angle <= -22.5) {
+    //   direction = "up";
+    // }
+
+    // Move in the current direction
+    const diagonalFactor = (Math.abs(dx) === Math.abs(dy)) ? 0.7071 : 1; // diagonal movement factor
+    const vx = diagonalFactor * this.velocity * Math.cos(angle * Math.PI / 180);
+    const vy = diagonalFactor * this.velocity * Math.sin(angle * Math.PI / 180);
+
+    follower.posX += vx;
+    follower.posY += vy;
+
+    // follower.currentDirection = direction;
+    eventManager.emit('updateClientPosition', { id: follower.playerId, x: follower.posX, y: follower.posY, direction: follower.currentDirection, target: target, targetting: true });
+    // io.emit('playerMoved', {playerId: this.playerId, posX: this.posX, posY: this.posY, currentDirection: direction});
+    
+    return false;
   }
 }
 class worldItem extends worldObject {
@@ -630,7 +687,7 @@ class worldItem extends worldObject {
     super(objectType, elmId, posX, posY, width, height);
     this.state = state;
     this.color = color;
-    this.collidable = true;
+    this.collidable = false;
     this.isCollectable = true;
     // console.log(this);
   }
@@ -779,6 +836,9 @@ class mainPlayer extends gameSprite {
 //     gameAsset.delete(asset);
 //     // this.updateCurrencyCounter();
 //   }
+
+  
+
   step() { // going insane 
     super.step(); 
     this.flwrTrain.moveTrain(); 
