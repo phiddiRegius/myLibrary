@@ -381,7 +381,7 @@ socket.on('pickFlower', function (data) {
 
 // 3000 for local
 // port for glitch process.env.PORT
-server.listen(process.env.PORT, () => {
+server.listen(port, () => {
   console.log('listening on *:3000');
 });
 
